@@ -5,6 +5,7 @@ CLAUDE.md
 .flaskenv
 
 .venv/
+.claude/
 
 __pycache__/
 
