@@ -5,7 +5,12 @@ from flask.testing import FlaskClient
 from app import create_app
 
 # Test-only values passed as overrides, so tests never depend on the developer's environment.
-TEST_SETTINGS = {"SECRET_KEY": "test-only-not-a-secret", "APP_TIMEZONE": "America/Toronto"}
+# The database URL is a placeholder that is never connected to; database tests will use TEST_DATABASE_URL.
+TEST_SETTINGS = {
+    "SECRET_KEY": "test-only-not-a-secret",
+    "APP_TIMEZONE": "America/Toronto",
+    "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://placeholder@localhost/not-used",
+}
 
 
 @pytest.fixture

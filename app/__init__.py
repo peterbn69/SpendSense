@@ -8,6 +8,7 @@ from app.blueprints.dashboard import bp as dashboard_bp
 from app.blueprints.expenses import bp as expenses_bp
 from app.blueprints.public import bp as public_bp
 from app.config import get_config_class, settings_from_env, validate_settings
+from app.extensions import db, migrate
 
 
 def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | None = None) -> Flask:
@@ -18,8 +19,14 @@ def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | No
         app.config.update(overrides)
     validate_settings(app.config)
 
+    _init_extensions(app)
     _register_blueprints(app)
     return app
+
+
+def _init_extensions(app: Flask) -> None:
+    db.init_app(app)
+    migrate.init_app(app, db)
 
 
 def _register_blueprints(app: Flask) -> None:

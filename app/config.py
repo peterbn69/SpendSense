@@ -27,8 +27,15 @@ CONFIGS: dict[str, type[Config]] = {
     "production": ProductionConfig,
 }
 
-# Settings read from environment variables; all are required.
-ENV_SETTINGS = ("SECRET_KEY", "APP_TIMEZONE")
+# Environment variable -> Flask config key. All are required.
+ENV_SETTINGS: dict[str, str] = {
+    "SECRET_KEY": "SECRET_KEY",
+    "APP_TIMEZONE": "APP_TIMEZONE",
+    "DATABASE_URL": "SQLALCHEMY_DATABASE_URI",
+}
+
+# psycopg 3 is the only installed driver; a bare postgresql:// would make SQLAlchemy look for psycopg2.
+DATABASE_URL_PREFIX = "postgresql+psycopg://"
 
 
 def get_config_class(name: str | None = None) -> type[Config]:
@@ -41,11 +48,11 @@ def get_config_class(name: str | None = None) -> type[Config]:
 
 
 def settings_from_env() -> dict[str, str]:
-    return {key: os.environ[key] for key in ENV_SETTINGS if os.environ.get(key)}
+    return {key: os.environ[name] for name, key in ENV_SETTINGS.items() if os.environ.get(name)}
 
 
 def validate_settings(config: Mapping[str, Any]) -> None:
-    missing = [key for key in ENV_SETTINGS if not config.get(key)]
+    missing = [name for name, key in ENV_SETTINGS.items() if not config.get(key)]
     if missing:
         raise RuntimeError(f"Missing required settings: {', '.join(missing)}. Set them as environment variables (see .env.example).")
 
@@ -54,3 +61,7 @@ def validate_settings(config: Mapping[str, Any]) -> None:
         ZoneInfo(timezone)
     except (ZoneInfoNotFoundError, ValueError):
         raise RuntimeError(f"APP_TIMEZONE {timezone!r} is not a valid IANA timezone (e.g. America/Toronto).") from None
+
+    # The URL holds the database password, so the message never echoes it.
+    if not str(config["SQLALCHEMY_DATABASE_URI"]).startswith(DATABASE_URL_PREFIX):
+        raise RuntimeError(f"DATABASE_URL must start with {DATABASE_URL_PREFIX!r}.")
