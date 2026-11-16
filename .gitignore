@@ -1,0 +1,13 @@
+SpendSense.md
+CLAUDE.md
+
+.env
+.flaskenv
+
+.venv/
+
+__pycache__/
+
+instance/
+
+.vscode/
