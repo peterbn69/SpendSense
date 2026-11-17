@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Something went wrong · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="notice">
+    <h1>Something went wrong</h1>
+    <p>Sorry, something went wrong on our side. Please try again in a moment.</p>
+    <p><a href="{{ url_for('public.index') }}">Back to the home page</a></p>
+  </section>
+{% endblock %}

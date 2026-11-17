@@ -17,7 +17,7 @@ def test_landing_page_renders(client: FlaskClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert response.mimetype == "text/html"
-    assert b"<h1>SpendSense</h1>" in response.data
+    assert b"See where your money goes" in response.data
 
 
 def test_unknown_url_is_404(client: FlaskClient) -> None:

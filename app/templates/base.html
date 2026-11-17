@@ -4,10 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SpendSense{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  <main>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{{ url_for('public.index') }}">SpendSense</a>
+      <nav aria-label="Main">
+        <ul class="nav-list">
+          <li><a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>Log in</a></li>
+          <li><a class="button button-small" href="{{ url_for('auth.register') }}"{% if request.endpoint == 'auth.register' %} aria-current="page"{% endif %}>Sign up</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="container" tabindex="-1">
+    {% include "_flash.html" %}
     {% block content %}{% endblock %}
   </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>SpendSense · a personal expense tracker with a monthly forecast.</p>
+    </div>
+  </footer>
 </body>
 </html>

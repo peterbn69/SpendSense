@@ -1,6 +1,36 @@
 {% extends "base.html" %}
 
+{% block title %}SpendSense · Track spending, plan next month{% endblock %}
+
 {% block content %}
-  <h1>SpendSense</h1>
-  <p>Log your expenses and see what next month is likely to cost.</p>
+  <section class="hero" aria-labelledby="hero-title">
+    <h1 id="hero-title">See where your money goes, and what next month will cost.</h1>
+    <p class="lead">SpendSense is a simple expense tracker. Log what you spend, see your monthly totals by category, and get a forecast for next month.</p>
+    <p class="actions">
+      <a class="button" href="{{ url_for('auth.register') }}">Create an account</a>
+      <a class="button button-secondary" href="{{ url_for('auth.login') }}">Log in</a>
+    </p>
+  </section>
+
+  <section aria-labelledby="features-title">
+    <h2 id="features-title">What it does</h2>
+    <ul class="features">
+      <li>
+        <h3>Log every expense</h3>
+        <p>Amount, category, date and an optional note. A running total shows the month so far as you type.</p>
+      </li>
+      <li>
+        <h3>See where it goes</h3>
+        <p>Monthly totals and a breakdown by category, from groceries to travel.</p>
+      </li>
+      <li>
+        <h3>Plan next month</h3>
+        <p>A forecast for each category, based on your last three full months.</p>
+      </li>
+      <li>
+        <h3>Spot the odd one out</h3>
+        <p>Expenses far outside your usual pattern for a category are flagged, so mistakes and surprises stand out.</p>
+      </li>
+    </ul>
+  </section>
 {% endblock %}

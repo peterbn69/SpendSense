@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}{{ heading }} · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="notice">
+    <h1>{{ heading }}</h1>
+    <p>This page isn't ready yet. It's coming soon.</p>
+    <p><a href="{{ url_for('public.index') }}">Back to the home page</a></p>
+  </section>
+{% endblock %}
