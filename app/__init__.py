@@ -3,6 +3,8 @@ from typing import Any
 
 from flask import Flask
 
+# Imported for its side effect: puts the models' tables on db.metadata for Flask-Migrate.
+from app import models
 from app.blueprints.auth import bp as auth_bp
 from app.blueprints.dashboard import bp as dashboard_bp
 from app.blueprints.expenses import bp as expenses_bp
