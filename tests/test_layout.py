@@ -63,10 +63,9 @@ def test_stylesheet_is_served(client: FlaskClient) -> None:
     response.close()
 
 
-@pytest.mark.parametrize(("path", "heading"), [("/auth/register", "Sign up"), ("/auth/login", "Log in")])
-def test_auth_placeholders(client: FlaskClient, path: str, heading: str) -> None:
-    html = client.get(path).get_data(as_text=True)
-    assert f"<h1>{heading}</h1>" in html
+def test_login_placeholder(client: FlaskClient) -> None:
+    html = client.get("/auth/login").get_data(as_text=True)
+    assert "<h1>Log in</h1>" in html
     assert "coming soon" in html
     assert 'aria-current="page"' in html
 

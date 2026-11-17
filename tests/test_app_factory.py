@@ -31,6 +31,7 @@ def test_all_blueprints_registered(app: Flask) -> None:
 def test_extensions_initialized(app: Flask) -> None:
     assert "sqlalchemy" in app.extensions
     assert "migrate" in app.extensions
+    assert "csrf" in app.extensions
 
 
 def test_testing_config(app: Flask) -> None:

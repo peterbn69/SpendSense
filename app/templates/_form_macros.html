@@ -1,0 +1,15 @@
+{# Renders one form field with its label, an optional hint, and its errors, linked for screen readers. #}
+{% macro field(f, hint=None) %}
+  {% set describedby = [] %}
+  {% if hint %}{% set _ = describedby.append(f.id ~ '-hint') %}{% endif %}
+  {% if f.errors %}{% set _ = describedby.append(f.id ~ '-error') %}{% endif %}
+  {% set attrs = {"class": "field-input"} %}
+  {% if describedby %}{% set _ = attrs.update({"aria-describedby": describedby | join(' ')}) %}{% endif %}
+  {% if f.errors %}{% set _ = attrs.update({"aria-invalid": "true"}) %}{% endif %}
+  <div class="field{% if f.errors %} field-invalid{% endif %}">
+    {{ f.label(class="field-label") }}
+    {% if hint %}<p class="field-hint" id="{{ f.id }}-hint">{{ hint }}</p>{% endif %}
+    {% if f.errors %}<p class="field-error" id="{{ f.id }}-error">{{ f.errors | join(' ') }}</p>{% endif %}
+    {{ f(**attrs) }}
+  </div>
+{% endmacro %}

@@ -11,7 +11,7 @@ from app.blueprints.dashboard import bp as dashboard_bp
 from app.blueprints.expenses import bp as expenses_bp
 from app.blueprints.public import bp as public_bp
 from app.config import get_config_class, settings_from_env, validate_settings
-from app.extensions import db, migrate
+from app.extensions import csrf, db, migrate
 
 
 def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | None = None) -> Flask:
@@ -31,6 +31,7 @@ def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | No
 def _init_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
 
 
 def _register_blueprints(app: Flask) -> None:
@@ -41,14 +42,11 @@ def _register_blueprints(app: Flask) -> None:
 
 
 def _register_error_handlers(app: Flask) -> None:
-    # 400 and 403 pages are added in M12.
     @app.errorhandler(404)
     def not_found(error: HTTPException) -> tuple[str, int]:
         return render_template("errors/404.html"), 404
 
     @app.errorhandler(500)
     def internal_error(error: HTTPException) -> tuple[str, int]:
-        # Flask has already logged the original exception with its traceback.
-        # Roll back so a failed transaction can't leak into the next request on this session.
         db.session.rollback()
         return render_template("errors/500.html"), 500

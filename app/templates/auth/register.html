@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_form_macros.html" import field %}
+
+{% block title %}Sign up · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="form-card" aria-labelledby="register-title">
+    <h1 id="register-title">Sign up</h1>
+    <p>Create an account to log expenses and see next month's forecast.</p>
+
+    <form method="post" action="{{ url_for('auth.register') }}">
+      {{ form.csrf_token }}
+      {{ field(form.email) }}
+      {{ field(form.password, hint="At least 8 characters.") }}
+      {{ field(form.confirm) }}
+      {{ form.submit(class="button") }}
+    </form>
+
+    <p class="form-footer">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </section>
+{% endblock %}
