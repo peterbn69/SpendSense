@@ -1,12 +1,13 @@
 from datetime import datetime
 
+from flask_login import UserMixin
 from sqlalchemy import BigInteger, CheckConstraint, DateTime, Identity, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.extensions import db
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = "users"
     __table_args__ = (CheckConstraint("email = lower(email)", name="email_lowercase"),)
 

@@ -63,13 +63,6 @@ def test_stylesheet_is_served(client: FlaskClient) -> None:
     response.close()
 
 
-def test_login_placeholder(client: FlaskClient) -> None:
-    html = client.get("/auth/login").get_data(as_text=True)
-    assert "<h1>Log in</h1>" in html
-    assert "coming soon" in html
-    assert 'aria-current="page"' in html
-
-
 def test_unknown_url_shows_404_page(client: FlaskClient) -> None:
     response = client.get("/no-such-page")
     assert response.status_code == 404

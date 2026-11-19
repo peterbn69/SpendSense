@@ -14,8 +14,18 @@
       <a class="brand" href="{{ url_for('public.index') }}">SpendSense</a>
       <nav aria-label="Main">
         <ul class="nav-list">
-          <li><a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>Log in</a></li>
-          <li><a class="button button-small" href="{{ url_for('auth.register') }}"{% if request.endpoint == 'auth.register' %} aria-current="page"{% endif %}>Sign up</a></li>
+          {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('dashboard.index') }}"{% if request.endpoint == 'dashboard.index' %} aria-current="page"{% endif %}>Dashboard</a></li>
+            <li>
+              <form class="nav-form" method="post" action="{{ url_for('auth.logout') }}">
+                {{ logout_form.csrf_token }}
+                {{ logout_form.submit(class="button button-small button-secondary") }}
+              </form>
+            </li>
+          {% else %}
+            <li><a href="{{ url_for('auth.login') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>Log in</a></li>
+            <li><a class="button button-small" href="{{ url_for('auth.register') }}"{% if request.endpoint == 'auth.register' %} aria-current="page"{% endif %}>Sign up</a></li>
+          {% endif %}
         </ul>
       </nav>
     </div>

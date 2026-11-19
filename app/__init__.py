@@ -11,7 +11,8 @@ from app.blueprints.dashboard import bp as dashboard_bp
 from app.blueprints.expenses import bp as expenses_bp
 from app.blueprints.public import bp as public_bp
 from app.config import get_config_class, settings_from_env, validate_settings
-from app.extensions import csrf, db, migrate
+from app.extensions import csrf, db, login_manager, migrate
+from app.services import auth
 
 
 def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | None = None) -> Flask:
@@ -32,6 +33,8 @@ def _init_extensions(app: Flask) -> None:
     db.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+    login_manager.init_app(app)
+    login_manager.user_loader(auth.load_user)
 
 
 def _register_blueprints(app: Flask) -> None:

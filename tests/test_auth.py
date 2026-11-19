@@ -1,5 +1,3 @@
-import re
-
 import pytest
 from argon2 import PasswordHasher
 from flask.testing import FlaskClient
@@ -11,16 +9,9 @@ from app.extensions import db as _db
 from app.models import User
 from app.repositories import users
 from app.services import auth
+from tests.conftest import PASSWORD, csrf_token
 
 REGISTER = "/auth/register"
-PASSWORD = "correct horse"
-
-
-def csrf_token(client: FlaskClient, path: str) -> str:
-    html = client.get(path).get_data(as_text=True)
-    match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', html)
-    assert match, "no CSRF token on the page"
-    return match.group(1)
 
 
 def post_register(client: FlaskClient, **fields: str) -> TestResponse:

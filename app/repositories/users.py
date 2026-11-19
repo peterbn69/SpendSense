@@ -13,6 +13,11 @@ def get_by_email(email: str) -> User | None:
     return db.session.scalar(select(User).where(User.email == email))
 
 
+def set_password_hash(user: User, password_hash: str) -> None:
+    user.password_hash = password_hash
+    db.session.flush()
+
+
 def add(email: str, password_hash: str) -> User:
     # Stage a new user and flush, so it gets an id and a duplicate email fails here.
     user = User(email=email, password_hash=password_hash)

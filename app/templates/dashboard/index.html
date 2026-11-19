@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="notice">
+    <h1>Dashboard</h1>
+    <p>You're signed in as <strong>{{ current_user.email }}</strong>.</p>
+    <p>Your monthly totals and forecast will appear here.</p>
+  </section>
+{% endblock %}

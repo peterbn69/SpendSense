@@ -3,12 +3,13 @@ from wtforms import EmailField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
 from app.services import auth
+from app.services.auth import PASSWORD_MAX_LENGTH
 
 EMAIL_MAX_LENGTH = 254
 PASSWORD_MIN_LENGTH = 8
-PASSWORD_MAX_LENGTH = 128
 
 EMAIL_TAKEN_MESSAGE = "An account with this email already exists. Please log in instead."
+LOGIN_FAILED_MESSAGE = "Email or password is incorrect."
 
 
 def _strip(value: str | None) -> str | None:
@@ -52,3 +53,23 @@ class RegisterForm(FlaskForm):
         # Friendly early check; auth.register() still catches the race at the database.
         if auth.is_email_registered(field.data):
             raise ValidationError(EMAIL_TAKEN_MESSAGE)
+
+
+class LoginForm(FlaskForm):
+    email = EmailField(
+        "Email",
+        filters=[_strip],
+        validators=[DataRequired(message="Enter your email address.")],
+        render_kw={"autocomplete": "email"},
+    )
+    password = PasswordField(
+        "Password",
+        validators=[DataRequired(message="Enter your password.")],
+        render_kw={"autocomplete": "current-password"},
+    )
+    submit = SubmitField("Log in")
+
+
+class LogoutForm(FlaskForm):
+    # CSRF token only
+    submit = SubmitField("Log out")

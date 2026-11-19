@@ -302,6 +302,20 @@ main:focus {
   font-weight: 600;
 }
 
+.form-error {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid currentColor;
+  border-radius: var(--radius);
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  font-weight: 600;
+}
+
+.nav-form {
+  margin: 0;
+}
+
 .field-invalid .field-input {
   border: 2px solid var(--color-error-text);
 }

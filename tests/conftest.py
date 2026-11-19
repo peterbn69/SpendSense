@@ -1,16 +1,20 @@
 import os
+import re
 from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 from dotenv import dotenv_values
-from flask import Flask
+from flask import Flask, g, request_started
 from flask.testing import FlaskClient
+from werkzeug.test import TestResponse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import make_url, text
 
 from app import create_app
 from app.extensions import db as _db
+from app.models import User
+from app.services import auth
 
 ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
@@ -46,9 +50,21 @@ def database_url() -> str:
 @pytest.fixture
 def app(database_url: str) -> Iterator[Flask]:
     app = create_app("testing", {**TEST_SETTINGS, "SQLALCHEMY_DATABASE_URI": database_url})
+    request_started.connect(_empty_g, app, weak=False)
     yield app
+    request_started.disconnect(_empty_g, app)
     with app.app_context():
         _db.engine.dispose()
+
+
+def _empty_g(sender: Flask, **extra: object) -> None:
+    """Start every request with an empty g, as in production.
+
+    The db fixture keeps one app context open and test requests reuse it, so without this, values
+    cached in g (Flask-Login's current user, Flask-WTF's CSRF token) would leak from one request to the next.
+    """
+    for key in list(g):
+        g.pop(key)
 
 
 @pytest.fixture
@@ -78,3 +94,30 @@ def db(app: Flask, _schema: None) -> Iterator[SQLAlchemy]:
         if tables:
             with _db.engine.begin() as connection:
                 connection.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
+
+
+PASSWORD = "correct horse"
+
+
+def csrf_token(client: FlaskClient, path: str) -> str:
+    """GET a page and return the CSRF token from its form."""
+    html = client.get(path).get_data(as_text=True)
+    match = re.search(r'name="csrf_token" type="hidden" value="([^"]+)"', html)
+    assert match, f"no CSRF token on {path}"
+    return match.group(1)
+
+
+def login(client: FlaskClient, email: str, password: str = PASSWORD, next_url: str | None = None) -> TestResponse:
+    data = {"email": email, "password": password, "csrf_token": csrf_token(client, "/auth/login")}
+    query = {} if next_url is None else {"next": next_url}
+    return client.post("/auth/login", query_string=query, data=data)
+
+
+@pytest.fixture
+def user_a(db: SQLAlchemy) -> User:
+    return auth.register("a@example.com", PASSWORD)
+
+
+@pytest.fixture
+def user_b(db: SQLAlchemy) -> User:
+    return auth.register("b@example.com", PASSWORD)
