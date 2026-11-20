@@ -47,3 +47,19 @@ def count_for_user(user_id: int) -> int:
 def delete_all_for_user(user_id: int) -> int:
     result = db.session.execute(delete(Expense).where(Expense.user_id == user_id))
     return result.rowcount
+
+
+def update(user_id: int, expense_id: int, amount: Decimal, category: str, spent_on: date, note: str) -> Expense | None:
+    # Change the user's expense and flush; None if it doesn't exist or belongs to someone else.
+    expense = get(user_id, expense_id)
+    if expense is None:
+        return None
+    expense.amount, expense.category, expense.spent_on, expense.note = amount, category, spent_on, note
+    db.session.flush()
+    return expense
+
+
+def delete_one(user_id: int, expense_id: int) -> bool:
+    # Delete the user's expense; False if it doesn't exist or belongs to someone else.
+    result = db.session.execute(delete(Expense).where(Expense.id == expense_id, Expense.user_id == user_id))
+    return result.rowcount == 1

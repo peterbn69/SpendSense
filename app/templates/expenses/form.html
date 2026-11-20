@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_form_macros.html" import field %}
+
+{% block title %}{{ title }} · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="form-card" aria-labelledby="expense-form-title">
+    <h1 id="expense-form-title">{{ title }}</h1>
+
+    <form method="post" action="{{ action }}">
+      {{ form.csrf_token }}
+      {{ field(form.amount, hint="Above 0 and under 1,000,000, with up to 2 decimals.") }}
+      {{ field(form.category) }}
+      {{ field(form.spent_on, hint="Today or earlier.") }}
+      {{ field(form.note, hint="Up to 200 characters.") }}
+      {{ form.submit(class="button") }}
+    </form>
+
+    <p class="form-footer">
+      {% if expense %}<a href="{{ url_for('expenses.delete', expense_id=expense.id) }}">Delete this expense</a> · {% endif %}
+      <a href="{{ url_for('expenses.index') }}">Back to expenses</a>
+    </p>
+  </section>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Delete expense · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="form-card" aria-labelledby="delete-title">
+    <h1 id="delete-title">Delete this expense?</h1>
+
+    <dl class="expense-summary">
+      <dt>Amount</dt><dd>{{ expense.amount | money }}</dd>
+      <dt>Category</dt><dd>{{ expense.category | category_label }}</dd>
+      <dt>Date</dt><dd><time datetime="{{ expense.spent_on.isoformat() }}">{{ expense.spent_on | long_date }}</time></dd>
+      {% if expense.note %}<dt>Note</dt><dd>{{ expense.note }}</dd>{% endif %}
+    </dl>
+    <p>This can't be undone.</p>
+
+    <form method="post" action="{{ url_for('expenses.delete', expense_id=expense.id) }}">
+      {{ form.csrf_token }}
+      {{ form.submit(class="button button-danger") }}
+    </form>
+
+    <p class="form-footer"><a href="{{ url_for('expenses.index') }}">Cancel, keep it</a></p>
+  </section>
+{% endblock %}

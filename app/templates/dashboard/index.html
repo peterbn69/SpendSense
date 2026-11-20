@@ -7,5 +7,6 @@
     <h1>Dashboard</h1>
     <p>You're signed in as <strong>{{ current_user.email }}</strong>.</p>
     <p>Your monthly totals and forecast will appear here.</p>
+    <p><a href="{{ url_for('expenses.index') }}">See your expenses</a> or <a href="{{ url_for('expenses.create') }}">add one</a>.</p>
   </section>
 {% endblock %}

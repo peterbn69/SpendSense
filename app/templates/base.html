@@ -16,6 +16,7 @@
         <ul class="nav-list">
           {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('dashboard.index') }}"{% if request.endpoint == 'dashboard.index' %} aria-current="page"{% endif %}>Dashboard</a></li>
+            <li><a href="{{ url_for('expenses.index') }}"{% if request.endpoint == 'expenses.index' %} aria-current="page"{% endif %}>Expenses</a></li>
             <li>
               <form class="nav-form" method="post" action="{{ url_for('auth.logout') }}">
                 {{ logout_form.csrf_token }}

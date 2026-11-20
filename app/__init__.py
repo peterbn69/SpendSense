@@ -13,6 +13,7 @@ from app.blueprints.public import bp as public_bp
 from app.cli import register_commands
 from app.config import get_config_class, settings_from_env, validate_settings
 from app.extensions import csrf, db, login_manager, migrate
+from app.formatting import register_filters
 from app.services import auth
 
 
@@ -28,6 +29,7 @@ def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | No
     _register_blueprints(app)
     _register_error_handlers(app)
     register_commands(app)
+    register_filters(app)
     return app
 
 

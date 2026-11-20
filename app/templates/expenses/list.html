@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Expenses · SpendSense{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="expenses-title">
+    <div class="page-header">
+      <h1 id="expenses-title">Expenses</h1>
+      <a class="button" href="{{ url_for('expenses.create') }}">Add expense</a>
+    </div>
+
+    {% if expenses %}
+      <p class="muted">{{ expenses | length }} expense{{ '' if expenses | length == 1 else 's' }}, newest first.</p>
+      <ul class="expense-list">
+        {% for expense in expenses %}
+          <li class="expense-item">
+            <div class="expense-main">
+              <p class="expense-category">{{ expense.category | category_label }}</p>
+              {% if expense.note %}<p class="expense-note">{{ expense.note }}</p>{% endif %}
+              <p class="expense-date"><time datetime="{{ expense.spent_on.isoformat() }}">{{ expense.spent_on | long_date }}</time></p>
+            </div>
+            <p class="expense-amount">{{ expense.amount | money }}</p>
+            <p class="expense-actions">
+              <a href="{{ url_for('expenses.edit', expense_id=expense.id) }}">Edit<span class="visually-hidden"> {{ expense.category | category_label }} expense of {{ expense.amount | money }} on {{ expense.spent_on | long_date }}</span></a>
+              <a href="{{ url_for('expenses.delete', expense_id=expense.id) }}">Delete<span class="visually-hidden"> {{ expense.category | category_label }} expense of {{ expense.amount | money }} on {{ expense.spent_on | long_date }}</span></a>
+            </p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="notice empty-state">
+        <h2>No expenses yet</h2>
+        <p>Log your first expense to start seeing monthly totals and a forecast.</p>
+        <p><a class="button" href="{{ url_for('expenses.create') }}">Add your first expense</a></p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}
