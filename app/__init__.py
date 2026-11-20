@@ -10,6 +10,7 @@ from app.blueprints.auth import bp as auth_bp
 from app.blueprints.dashboard import bp as dashboard_bp
 from app.blueprints.expenses import bp as expenses_bp
 from app.blueprints.public import bp as public_bp
+from app.cli import register_commands
 from app.config import get_config_class, settings_from_env, validate_settings
 from app.extensions import csrf, db, login_manager, migrate
 from app.services import auth
@@ -26,6 +27,7 @@ def create_app(config_name: str | None = None, overrides: Mapping[str, Any] | No
     _init_extensions(app)
     _register_blueprints(app)
     _register_error_handlers(app)
+    register_commands(app)
     return app
 
 

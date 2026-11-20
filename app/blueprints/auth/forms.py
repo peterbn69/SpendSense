@@ -3,10 +3,9 @@ from wtforms import EmailField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
 from app.services import auth
-from app.services.auth import PASSWORD_MAX_LENGTH
+from app.services.auth import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH
 
 EMAIL_MAX_LENGTH = 254
-PASSWORD_MIN_LENGTH = 8
 
 EMAIL_TAKEN_MESSAGE = "An account with this email already exists. Please log in instead."
 LOGIN_FAILED_MESSAGE = "Email or password is incorrect."

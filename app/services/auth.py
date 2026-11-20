@@ -9,6 +9,7 @@ from app.models import User
 from app.repositories import users
 
 EMAIL_UNIQUE_CONSTRAINT = "uq_users_email"
+PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
 _MAX_USER_ID = 2**63 - 1
 
@@ -23,8 +24,12 @@ def normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
+def find_by_email(email: str) -> User | None:
+    return users.get_by_email(normalize_email(email))
+
+
 def is_email_registered(email: str) -> bool:
-    return users.get_by_email(normalize_email(email)) is not None
+    return find_by_email(email) is not None
 
 
 def register(email: str, password: str) -> User:

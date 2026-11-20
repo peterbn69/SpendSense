@@ -10,14 +10,17 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False
+    ALLOW_SEED = False
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    ALLOW_SEED = True
 
 
 class TestingConfig(Config):
     TESTING = True
+    ALLOW_SEED = True
 
 
 class ProductionConfig(Config):
