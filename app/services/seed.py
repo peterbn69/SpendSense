@@ -11,6 +11,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from app import clock
+from app.analytics.months import add_months
 from app.extensions import db
 from app.repositories import expenses
 from app.repositories.expenses import NewExpense
@@ -42,7 +43,7 @@ def seed_expenses(user_id: int, *, months: int = DEFAULT_MONTHS, reset: bool = F
 
 def fake_expenses(rng: random.Random, today: date, months: int) -> list[NewExpense]:
     # Expenses from the first day of the month `months` months back through today; none in the future.
-    start = _add_months(today.replace(day=1), -months)
+    start = add_months(today.replace(day=1), -months)
     rows: list[NewExpense] = []
     for day in _days(start, today):
         rows.extend(_monthly_bills(day))
@@ -98,7 +99,7 @@ def _everyday(rng: random.Random, day: date) -> Iterator[NewExpense]:
 def _one_offs(start: date) -> list[NewExpense]:
     # A trip and a few outliers, placed by month offset from the start; dropped if after today.
     def on(month_offset: int, day: int) -> date:
-        return _add_months(start, month_offset).replace(day=day)
+        return add_months(start, month_offset).replace(day=day)
 
     return [
         NewExpense(Decimal("385.40"), "groceries", on(1, 18), "Big stock-up for a party"),
@@ -119,9 +120,3 @@ def _days(first: date, last: date) -> Iterator[date]:
     while day <= last:
         yield day
         day += timedelta(days=1)
-
-
-def _add_months(month: date, offset: int) -> date:
-    # The first day of the month `offset` months from `month` (negative goes back).
-    index = month.year * 12 + month.month - 1 + offset
-    return date(index // 12, index % 12 + 1, 1)

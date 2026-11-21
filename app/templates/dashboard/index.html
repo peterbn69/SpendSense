@@ -1,12 +1,52 @@
 {% extends "base.html" %}
 
+{# One bar chart as a plain list: each row reads "label amount" without CSS, and the bar is decoration. #}
+{% macro bars(items, current_label=None) %}
+  <ul class="bars">
+    {% for bar in items %}
+      <li class="bar-row{% if bar.is_current %} bar-row-current{% endif %}">
+        <span class="bar-label">{{ bar.label }}{% if bar.is_current and current_label %} <span class="bar-note">({{ current_label }})</span>{% endif %}</span>
+        <span class="bar-value">{{ bar.amount | money }}</span>
+        <span class="bar-track" aria-hidden="true"><span class="bar-fill" style="width: {{ bar.percent }}%"></span></span>
+      </li>
+    {% endfor %}
+  </ul>
+{% endmacro %}
+
 {% block title %}Dashboard · SpendSense{% endblock %}
 
 {% block content %}
-  <section class="notice">
+  <div class="page-header">
     <h1>Dashboard</h1>
-    <p>You're signed in as <strong>{{ current_user.email }}</strong>.</p>
-    <p>Your monthly totals and forecast will appear here.</p>
-    <p><a href="{{ url_for('expenses.index') }}">See your expenses</a> or <a href="{{ url_for('expenses.create') }}">add one</a>.</p>
-  </section>
+    <a class="button" href="{{ url_for('expenses.create') }}">Add expense</a>
+  </div>
+  <p class="muted">You're signed in as <strong>{{ current_user.email }}</strong>.</p>
+
+  {% if not dashboard.has_expenses %}
+    <section class="notice empty-state" aria-labelledby="empty-title">
+      <h2 id="empty-title">Nothing to show yet</h2>
+      <p>Log your first expense to see your monthly totals and where your money goes.</p>
+      <p><a class="button" href="{{ url_for('expenses.create') }}">Add your first expense</a></p>
+    </section>
+  {% else %}
+    <div class="dashboard-grid">
+      <section class="panel" aria-labelledby="this-month-title">
+        <h2 id="this-month-title">{{ dashboard.current_month | month_label }}</h2>
+        <p class="panel-total">Spent so far: <strong>{{ dashboard.month_total | money }}</strong></p>
+        {% if dashboard.categories %}
+          {{ bars(dashboard.categories) }}
+        {% else %}
+          <p class="muted">Nothing spent yet this month.</p>
+        {% endif %}
+      </section>
+
+      <section class="panel" aria-labelledby="months-title">
+        <h2 id="months-title">Last {{ dashboard.months | length }} months</h2>
+        <p class="muted">Total spent each month.</p>
+        {{ bars(dashboard.months, current_label="so far") }}
+      </section>
+    </div>
+
+    <p class="dashboard-links"><a href="{{ url_for('expenses.index') }}">See all expenses</a></p>
+  {% endif %}
 {% endblock %}

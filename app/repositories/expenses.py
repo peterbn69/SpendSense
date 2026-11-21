@@ -65,10 +65,24 @@ def delete_one(user_id: int, expense_id: int) -> bool:
     return result.rowcount == 1
 
 
-def monthly_totals(user_id: int, exclude_expense_id: int | None = None) -> dict[date, Decimal]:
+def monthly_totals(
+    user_id: int, exclude_expense_id: int | None = None, since: date | None = None
+) -> dict[date, Decimal]:
     # The user's spending per month, keyed by the first day of the month; months with no expenses are absent.
     month = func.date_trunc("month", Expense.spent_on).cast(Date)
     query = select(month, func.sum(Expense.amount)).where(Expense.user_id == user_id).group_by(month)
     if exclude_expense_id is not None:
         query = query.where(Expense.id != exclude_expense_id)
+    if since is not None:
+        query = query.where(Expense.spent_on >= since)
     return {first_day: total for first_day, total in db.session.execute(query)}
+
+
+def category_totals(user_id: int, first_day: date, last_day: date) -> dict[str, Decimal]:
+    # The user's spending per category between two days, inclusive; categories with no expenses are absent.
+    query = (
+        select(Expense.category, func.sum(Expense.amount))
+        .where(Expense.user_id == user_id, Expense.spent_on >= first_day, Expense.spent_on <= last_day)
+        .group_by(Expense.category)
+    )
+    return {category: total for category, total in db.session.execute(query)}

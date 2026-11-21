@@ -491,6 +491,76 @@ main:focus {
   min-height: 2.75rem;
 }
 
+/* Dashboard: bar charts drawn with CSS. Each row is label + amount, with the bar underneath. */
+.dashboard-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.panel {
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.panel h2 {
+  margin-bottom: var(--space-1);
+}
+
+.panel-total {
+  margin-bottom: var(--space-3);
+}
+
+.bars {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-1) var(--space-2);
+}
+
+.bar-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.bar-note {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.bar-track {
+  grid-column: 1 / -1;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+.bar-row-current .bar-fill {
+  /* The month in progress is lighter, since it isn't finished yet. */
+  background: repeating-linear-gradient(45deg, var(--color-accent), var(--color-accent) 6px, #3f9478 6px, #3f9478 12px);
+}
+
+.dashboard-links {
+  margin-top: var(--space-3);
+}
+
 /* Footer */
 .site-footer {
   border-top: 1px solid var(--color-border);
@@ -523,6 +593,11 @@ main:focus {
 
   .features {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    align-items: start;
   }
 
   .form-card {
