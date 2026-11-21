@@ -31,13 +31,17 @@
 
       <ul class="expense-list">
         {% for expense in expenses %}
-          <li class="expense-item" data-category="{{ expense.category }}"{% if selected and expense.category != selected %} hidden{% endif %}>
+          {% set flag = unusual.get(expense.id) %}
+          <li class="expense-item{% if flag %} expense-item-unusual{% endif %}" data-category="{{ expense.category }}"{% if flag %} data-unusual{% endif %}{% if selected and expense.category != selected %} hidden{% endif %}>
             <div class="expense-main">
               <p class="expense-category">{{ expense.category | category_label }}</p>
               {% if expense.note %}<p class="expense-note">{{ expense.note }}</p>{% endif %}
               <p class="expense-date"><time datetime="{{ expense.spent_on.isoformat() }}">{{ expense.spent_on | long_date }}</time></p>
             </div>
             <p class="expense-amount">{{ expense.amount | money }}</p>
+            {% if flag %}
+              <p class="expense-flag"><span class="badge">Unusual</span> Much higher than your usual {{ expense.category | category_label }} expense (about {{ flag.typical | money }}).</p>
+            {% endif %}
             <p class="expense-actions">
               <a href="{{ url_for('expenses.edit', expense_id=expense.id) }}">Edit<span class="visually-hidden"> {{ expense.category | category_label }} expense of {{ expense.amount | money }} on {{ expense.spent_on | long_date }}</span></a>
               <a href="{{ url_for('expenses.delete', expense_id=expense.id) }}">Delete<span class="visually-hidden"> {{ expense.category | category_label }} expense of {{ expense.amount | money }} on {{ expense.spent_on | long_date }}</span></a>

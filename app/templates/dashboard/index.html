@@ -60,6 +60,33 @@
         {% endif %}
       </section>
 
+      <section class="panel" aria-labelledby="unusual-title">
+        <h2 id="unusual-title">Unusual expenses</h2>
+        <p class="muted">
+          From the last {{ dashboard.unusual_days }} days: expenses far above your other expenses in the same category.
+        </p>
+        {% if dashboard.unusual %}
+          <ul class="unusual-list">
+            {% for item in dashboard.unusual %}
+              {% set expense = item.expense %}
+              <li class="unusual-item">
+                <p class="unusual-head">
+                  <span class="unusual-category">{{ expense.category | category_label }}</span>
+                  <span class="unusual-amount">{{ expense.amount | money }}</span>
+                </p>
+                <p class="muted">
+                  <time datetime="{{ expense.spent_on.isoformat() }}">{{ expense.spent_on | long_date }}</time>{% if expense.note %} · {{ expense.note }}{% endif %}
+                  · usually about {{ item.anomaly.typical | money }}
+                </p>
+                <p><a href="{{ url_for('expenses.edit', expense_id=expense.id) }}">Check this expense<span class="visually-hidden">: {{ expense.category | category_label }}, {{ expense.amount | money }} on {{ expense.spent_on | long_date }}</span></a></p>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>Nothing unusual. Flags appear once a category has at least 6 expenses.</p>
+        {% endif %}
+      </section>
+
       <section class="panel" aria-labelledby="months-title">
         <h2 id="months-title">Last {{ dashboard.months | length }} months</h2>
         <p class="muted">Total spent each month.</p>

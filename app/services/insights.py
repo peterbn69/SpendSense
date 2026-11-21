@@ -2,19 +2,23 @@
 What the dashboard shows:
 - Monthly totals
 - This month's spending per category and next month's forecast
+- Unusual expenses from the last 90 days
 - Ready to draw as bars.
 """
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 from app import categories, clock
 from app.analytics import forecast as forecasting
+from app.analytics.anomaly import Anomaly, flag_unusual
 from app.analytics.months import add_months, month_range, zero_filled
+from app.models import Expense
 from app.repositories import expenses
 
 MONTHS_SHOWN = 6  # this month and the 5 before it
+UNUSUAL_DAYS = 90  # the dashboard lists unusual expenses from this many days, today included
 
 
 @dataclass(frozen=True)
@@ -44,6 +48,12 @@ class Forecast:
 
 
 @dataclass(frozen=True)
+class UnusualExpense:
+    expense: Expense
+    anomaly: Anomaly
+
+
+@dataclass(frozen=True)
 class Dashboard:
     has_expenses: bool
     current_month: date
@@ -51,6 +61,8 @@ class Dashboard:
     months: list[MonthBar]  # oldest first, zero-filled
     categories: list[Bar]  # this month, largest first; only categories with spending
     forecast: Forecast
+    unusual: list[UnusualExpense]  # last UNUSUAL_DAYS days, newest first
+    unusual_days: int
 
 
 def dashboard(user_id: int) -> Dashboard:
@@ -78,7 +90,21 @@ def dashboard(user_id: int) -> Dashboard:
         months=months,
         categories=_ranked_bars(by_category),
         forecast=next_month_forecast(user_id),
+        unusual=recent_unusual(user_id),
+        unusual_days=UNUSUAL_DAYS,
     )
+
+
+def unusual_expenses(user_id: int) -> dict[int, Anomaly]:
+    return flag_unusual(expenses.amounts_for_user(user_id))
+
+
+def recent_unusual(user_id: int) -> list[UnusualExpense]:
+    flags = unusual_expenses(user_id)
+    if not flags:
+        return []
+    since = clock.today() - timedelta(days=UNUSUAL_DAYS - 1)
+    return [UnusualExpense(e, flags[e.id]) for e in expenses.list_since(user_id, since) if e.id in flags]
 
 
 def next_month_forecast(user_id: int) -> Forecast:

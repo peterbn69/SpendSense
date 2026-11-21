@@ -9,7 +9,7 @@ from app import clock
 from app.blueprints.expenses.forms import DATE_INVALID_MESSAGE, CategoryFilterForm, DeleteForm, ExpenseForm
 from app.formatting import month_totals_for_script
 from app.models import Expense
-from app.services import expenses
+from app.services import expenses, insights
 from app.services.expenses import MAX_EXPENSE_ID
 
 bp = Blueprint("expenses", __name__)
@@ -29,7 +29,14 @@ def index() -> str:
     selected = filter_form.category.data
     items = expenses.list_expenses(current_user.id)
     shown = sum(1 for item in items if not selected or item.category == selected)
-    return render_template("expenses/list.html", expenses=items, filter_form=filter_form, selected=selected, shown=shown)
+    return render_template(
+        "expenses/list.html",
+        expenses=items,
+        filter_form=filter_form,
+        selected=selected,
+        shown=shown,
+        unusual=insights.unusual_expenses(current_user.id),
+    )
 
 
 @bp.route("/new", methods=["GET", "POST"])

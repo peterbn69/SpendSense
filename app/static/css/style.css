@@ -561,6 +561,57 @@ main:focus {
   margin-top: var(--space-3);
 }
 
+/* Unusual expenses (anomaly flags) */
+.badge {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.expense-item-unusual {
+  border-left: 4px solid var(--color-error-text);
+}
+
+.expense-flag {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+}
+
+.unusual-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.unusual-item {
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--color-error-text);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.unusual-item p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.unusual-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.unusual-amount {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Footer */
 .site-footer {
   border-top: 1px solid var(--color-border);

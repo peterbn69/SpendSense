@@ -102,3 +102,19 @@ def monthly_category_totals(user_id: int, before: date) -> dict[tuple[str, date]
         .group_by(Expense.category, month)
     )
     return {(category, first_day): total for category, first_day, total in db.session.execute(query)}
+
+
+def amounts_for_user(user_id: int) -> list[tuple[int, str, Decimal]]:
+    # (id, category, amount) for every one of the user's expenses: the input for anomaly flags.
+    query = select(Expense.id, Expense.category, Expense.amount).where(Expense.user_id == user_id)
+    return [(expense_id, category, amount) for expense_id, category, amount in db.session.execute(query)]
+
+
+def list_since(user_id: int, since: date) -> list[Expense]:
+    # The user's expenses on or after `since`, newest first.
+    query = (
+        select(Expense)
+        .where(Expense.user_id == user_id, Expense.spent_on >= since)
+        .order_by(Expense.spent_on.desc(), Expense.id.desc())
+    )
+    return list(db.session.scalars(query))
