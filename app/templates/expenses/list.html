@@ -10,10 +10,28 @@
     </div>
 
     {% if expenses %}
-      <p class="muted">{{ expenses | length }} expense{{ '' if expenses | length == 1 else 's' }}, newest first.</p>
+      {# A GET form, so the filter works without JS; category-filter.js filters instantly on change. #}
+      <form class="filter-form" method="get" action="{{ url_for('expenses.index') }}" data-category-filter>
+        {{ filter_form.category.label(class="field-label") }}
+        <div class="filter-controls">
+          {{ filter_form.category(class="field-input") }}
+          {# No name, so the address stays ?category=... #}
+          <button class="button button-secondary" type="submit" data-category-filter-submit>Filter</button>
+        </div>
+      </form>
+
+      <p class="muted" data-filter-count aria-live="polite" data-total="{{ expenses | length }}">
+        {%- if selected -%}
+          {{ shown }} of {{ expenses | length }} expenses, newest first.
+        {%- else -%}
+          {{ expenses | length }} expense{{ '' if expenses | length == 1 else 's' }}, newest first.
+        {%- endif -%}
+      </p>
+      <p class="notice" data-filter-empty{% if shown %} hidden{% endif %}>No expenses in this category yet.</p>
+
       <ul class="expense-list">
         {% for expense in expenses %}
-          <li class="expense-item">
+          <li class="expense-item" data-category="{{ expense.category }}"{% if selected and expense.category != selected %} hidden{% endif %}>
             <div class="expense-main">
               <p class="expense-category">{{ expense.category | category_label }}</p>
               {% if expense.note %}<p class="expense-note">{{ expense.note }}</p>{% endif %}
@@ -35,4 +53,8 @@
       </div>
     {% endif %}
   </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/category-filter.js') }}" defer></script>
 {% endblock %}

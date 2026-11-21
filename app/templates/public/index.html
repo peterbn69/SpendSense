@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_running_total.html" import running_total %}
 
 {% block title %}SpendSense · Track spending, plan next month{% endblock %}
 
@@ -10,6 +11,18 @@
       <a class="button" href="{{ url_for('auth.register') }}">Create an account</a>
       <a class="button button-secondary" href="{{ url_for('auth.login') }}">Log in</a>
     </p>
+  </section>
+
+  <section class="demo notice" aria-labelledby="demo-title">
+    <h2 id="demo-title">Try the running total</h2>
+    <p>A sample month: {{ demo_total | money }} spent so far. This demo saves nothing.</p>
+    <div class="field" data-running-total-reveal hidden>
+      <label class="field-label" for="demo-amount">Amount of a new expense</label>
+      <p class="field-hint" id="demo-amount-hint">Type an amount and watch the month's total update.</p>
+      <input class="field-input" id="demo-amount" type="text" inputmode="decimal" autocomplete="off"
+             placeholder="12.50" aria-describedby="demo-amount-hint">
+    </div>
+    {{ running_total(demo_totals, demo_month, demo_total, "demo-amount") }}
   </section>
 
   <section aria-labelledby="features-title">
@@ -33,4 +46,8 @@
       </li>
     </ul>
   </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/running-total.js') }}" defer></script>
 {% endblock %}

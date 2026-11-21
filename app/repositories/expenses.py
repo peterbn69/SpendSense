@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 from typing import NamedTuple
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import Date, delete, func, select
 
 from app.extensions import db
 from app.models import Expense
@@ -63,3 +63,12 @@ def delete_one(user_id: int, expense_id: int) -> bool:
     # Delete the user's expense; False if it doesn't exist or belongs to someone else.
     result = db.session.execute(delete(Expense).where(Expense.id == expense_id, Expense.user_id == user_id))
     return result.rowcount == 1
+
+
+def monthly_totals(user_id: int, exclude_expense_id: int | None = None) -> dict[date, Decimal]:
+    # The user's spending per month, keyed by the first day of the month; months with no expenses are absent.
+    month = func.date_trunc("month", Expense.spent_on).cast(Date)
+    query = select(month, func.sum(Expense.amount)).where(Expense.user_id == user_id).group_by(month)
+    if exclude_expense_id is not None:
+        query = query.where(Expense.id != exclude_expense_id)
+    return {first_day: total for first_day, total in db.session.execute(query)}

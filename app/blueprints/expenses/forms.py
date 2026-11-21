@@ -9,7 +9,6 @@ from wtforms.validators import DataRequired, InputRequired, Length, StopValidati
 from app import categories, clock
 from app.services import expenses
 from app.services.expenses import (
-    AMOUNT_LIMIT,
     CATEGORY_MESSAGE,
     DATE_REQUIRED_MESSAGE,
     MIN_DATE,
@@ -46,13 +45,13 @@ class AmountField(StringField):
 class ExpenseForm(FlaskForm):
     amount = AmountField(
         "Amount",
+        # A text box with a decimal keypad, so live-validation.js sees exactly what was typed.
+        # The pattern is a no-JS browser hint (digits, up to 2 decimals); the server checks everything.
         render_kw={
             "inputmode": "decimal",
             "autocomplete": "off",
-            "type": "number",
-            "step": "0.01",
-            "min": "0.01",
-            "max": str(AMOUNT_LIMIT - Decimal("0.01")),
+            "required": True,
+            "pattern": r"\d+(\.\d{1,2})?|\.\d{1,2}",
         },
     )
     category = SelectField(
@@ -89,6 +88,17 @@ class ExpenseForm(FlaskForm):
                 expenses.check_spent_on(field.data)
             except expenses.ExpenseRuleError as error:
                 raise ValidationError(error.message) from None
+
+
+class CategoryFilterForm(FlaskForm):
+    class Meta:
+        csrf = False
+
+    category = SelectField(
+        "Category",
+        choices=[SelectChoice("", "All categories")] + [SelectChoice(key, label) for key, label in categories.CHOICES],
+        default="",
+    )
 
 
 class DeleteForm(FlaskForm):

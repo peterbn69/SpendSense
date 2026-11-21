@@ -1,0 +1,13 @@
+{# The running total line. The server writes the month's total (the no-JS text); running-total.js keeps it live.
+   month_totals: {"2026-11": "412.50"}; month: first day of the month shown at first; start_total: its Decimal total. #}
+{% macro running_total(month_totals, month, start_total, amount_input_id, date_input_id=None) %}
+  <p class="running-total" aria-live="polite"
+     data-running-total
+     data-month-totals='{{ month_totals | tojson }}'
+     data-month="{{ month | month_key }}"
+     data-amount-input="{{ amount_input_id }}"
+     {% if date_input_id %}data-date-input="{{ date_input_id }}"{% endif %}>
+    Spent in <span data-running-total-month>{{ month | month_label }}</span>:
+    <strong data-running-total-value>{{ start_total | money }}</strong>
+  </p>
+{% endmacro %}

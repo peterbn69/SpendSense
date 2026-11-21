@@ -22,3 +22,20 @@ def register_filters(app: Flask) -> None:
     app.add_template_filter(money, "money")
     app.add_template_filter(long_date, "long_date")
     app.add_template_filter(categories.label, "category_label")
+    app.add_template_filter(month_key, "month_key")
+    app.add_template_filter(month_label, "month_label")
+
+
+def month_key(value: date) -> str:
+    # e.g., 2026-11
+    return f"{value:%Y-%m}"
+
+
+def month_label(value: date) -> str:
+    # e.g., November 2026
+    return f"{value:%B} {value.year}"
+
+
+def month_totals_for_script(totals: dict[date, Decimal]) -> dict[str, str]:
+    # {"2026-11": "412.50"}: amounts as strings, so the script can turn them into integer cents without floats.
+    return {month_key(month): f"{total:.2f}" for month, total in sorted(totals.items())}

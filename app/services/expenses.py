@@ -87,6 +87,10 @@ def list_expenses(user_id: int) -> list[Expense]:
     return expenses.list_for_user(user_id)
 
 
+def month_totals(user_id: int, exclude_expense_id: int | None = None) -> dict[date, Decimal]:
+    return expenses.monthly_totals(user_id, exclude_expense_id)
+
+
 def get_expense(user_id: int, expense_id: int) -> Expense | None:
     # The user's expense, or None if it is missing, someone else's, or the id is out of range.
     if not 1 <= expense_id <= MAX_EXPENSE_ID:

@@ -1,8 +1,14 @@
-from flask import Blueprint, abort, flash, redirect, render_template, url_for
+from datetime import date
+from decimal import Decimal
+
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
-from app.blueprints.expenses.forms import DeleteForm, ExpenseForm
+from app import clock
+from app.blueprints.expenses.forms import DATE_INVALID_MESSAGE, CategoryFilterForm, DeleteForm, ExpenseForm
+from app.formatting import month_totals_for_script
+from app.models import Expense
 from app.services import expenses
 from app.services.expenses import MAX_EXPENSE_ID
 
@@ -15,7 +21,15 @@ _ID = f"<int(min=1, max={MAX_EXPENSE_ID}):expense_id>"
 @bp.get("/")
 @login_required
 def index() -> str:
-    return render_template("expenses/list.html", expenses=expenses.list_expenses(current_user.id))
+    # The filter is a GET form, so it works without JS: non-matching expenses are rendered with the hidden
+    # attribute, and category-filter.js just toggles that attribute when JS is on.
+    filter_form = CategoryFilterForm(request.args)
+    if not filter_form.validate():
+        filter_form.category.data = ""
+    selected = filter_form.category.data
+    items = expenses.list_expenses(current_user.id)
+    shown = sum(1 for item in items if not selected or item.category == selected)
+    return render_template("expenses/list.html", expenses=items, filter_form=filter_form, selected=selected, shown=shown)
 
 
 @bp.route("/new", methods=["GET", "POST"])
@@ -30,7 +44,7 @@ def create() -> str | Response:
         else:
             flash("Expense added.", "success")
             return redirect(url_for("expenses.index"))
-    return render_template("expenses/form.html", form=form, title="Add expense", action=url_for("expenses.create"))
+    return _render_form(form, "Add expense", url_for("expenses.create"))
 
 
 @bp.route(f"/{_ID}/edit", methods=["GET", "POST"])
@@ -53,8 +67,7 @@ def edit(expense_id: int) -> str | Response:
                 abort(404)
             flash("Expense updated.", "success")
             return redirect(url_for("expenses.index"))
-    action = url_for("expenses.edit", expense_id=expense_id)
-    return render_template("expenses/form.html", form=form, title="Edit expense", action=action, expense=expense)
+    return _render_form(form, "Edit expense", url_for("expenses.edit", expense_id=expense_id), expense)
 
 
 @bp.route(f"/{_ID}/delete", methods=["GET", "POST"])
@@ -72,3 +85,51 @@ def delete(expense_id: int) -> str | Response:
         flash("Expense deleted.", "success")
         return redirect(url_for("expenses.index"))
     return render_template("expenses/confirm_delete.html", form=form, expense=expense)
+
+
+def _render_form(form: ExpenseForm, title: str, action: str, expense: Expense | None = None) -> str:
+    totals = expenses.month_totals(current_user.id, exclude_expense_id=expense.id if expense else None)
+    shown_day = form.spent_on.data if isinstance(form.spent_on.data, date) else clock.today()
+    month = shown_day.replace(day=1)
+
+    # The no-JS text matches what the script shows on load: the month's spending plus a valid typed amount.
+    start_total = totals.get(month, Decimal("0"))
+    try:
+        start_total += expenses.parse_amount(form.amount._value())
+    except expenses.ExpenseRuleError:
+        pass
+
+    return render_template(
+        "expenses/form.html",
+        form=form,
+        title=title,
+        action=action,
+        expense=expense,
+        month_totals=month_totals_for_script(totals),
+        month=month,
+        start_total=start_total,
+        validation=_validation_rules(),
+    )
+
+
+def _validation_rules() -> dict[str, object]:
+    # The server's rules and messages, handed to live-validation.js so the hints say exactly what the server would.
+    return {
+        "amount": {
+            "required": expenses.AMOUNT_REQUIRED_MESSAGE,
+            "format": expenses.AMOUNT_FORMAT_MESSAGE,
+            "positive": expenses.AMOUNT_POSITIVE_MESSAGE,
+            "places": expenses.AMOUNT_PLACES_MESSAGE,
+            "limit": expenses.AMOUNT_LIMIT_MESSAGE,
+        },
+        "category": {"required": expenses.CATEGORY_MESSAGE},
+        "spent_on": {
+            "required": expenses.DATE_REQUIRED_MESSAGE,
+            "invalid": DATE_INVALID_MESSAGE,
+            "future": expenses.DATE_FUTURE_MESSAGE,
+            "too_early": expenses.DATE_TOO_EARLY_MESSAGE,
+            "min": expenses.MIN_DATE.isoformat(),
+            "max": clock.today().isoformat(),
+        },
+        "note": {"too_long": expenses.NOTE_LENGTH_MESSAGE, "max_length": expenses.NOTE_MAX_LENGTH},
+    }

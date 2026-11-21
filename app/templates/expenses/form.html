@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "_form_macros.html" import field %}
+{% from "_running_total.html" import running_total %}
 
 {% block title %}{{ title }} · SpendSense{% endblock %}
 
@@ -7,9 +8,10 @@
   <section class="form-card" aria-labelledby="expense-form-title">
     <h1 id="expense-form-title">{{ title }}</h1>
 
-    <form method="post" action="{{ action }}">
+    <form method="post" action="{{ action }}" data-live-validation='{{ validation | tojson }}'>
       {{ form.csrf_token }}
       {{ field(form.amount, hint="Above 0 and under 1,000,000, with up to 2 decimals.") }}
+      {{ running_total(month_totals, month, start_total, form.amount.id, form.spent_on.id) }}
       {{ field(form.category) }}
       {{ field(form.spent_on, hint="Today or earlier.") }}
       {{ field(form.note, hint="Up to 200 characters.") }}
@@ -21,4 +23,9 @@
       <a href="{{ url_for('expenses.index') }}">Back to expenses</a>
     </p>
   </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/running-total.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/live-validation.js') }}" defer></script>
 {% endblock %}
