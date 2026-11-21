@@ -135,7 +135,7 @@ def test_dashboard_shows_both_charts(client: FlaskClient, user_a: User, user_b: 
     page = _page(client)
 
     assert "February 2026" in page
-    assert "Spent so far: <strong>$1,299.75</strong>" in page
+    assert '<p class="stat-hero-amount">$1,299.75</p>' in page
     assert "Housing &amp; utilities" in page and "Dining out" in page
     assert "$65.25" in page
     assert "Shopping" not in page and "$777.77" not in page  # user B's spending
@@ -154,7 +154,7 @@ def test_no_spending_this_month_says_so(client: FlaskClient, user_a: User, today
     login(client, "a@example.com")
     page = _page(client)
     assert "Nothing spent yet this month." in page
-    assert "Spent so far: <strong>$0.00</strong>" in page
+    assert '<p class="stat-hero-amount">$0.00</p>' in page
     assert "Last 6 months" in page
 
 
@@ -312,3 +312,28 @@ def test_page_when_the_last_three_months_were_empty(client: FlaskClient, user_a:
     page = _page(client)
     assert "Expected spending: <strong>$0.00</strong>" in page
     assert "No spending in the last 3 full months." in page
+
+
+def test_headline_card_leads_with_this_month(client: FlaskClient, user_a: User, today: date) -> None:
+    for month in (11, 12):
+        _add(user_a, "100.00", date(2025, month, 1))
+    _add(user_a, "250.00", date(2026, 1, 15))  # last month
+    _add(user_a, "42.10", date(2026, 2, 2))  # this month
+    login(client, "a@example.com")
+    page = _page(client)
+
+    hero = page[page.index('class="stat-hero"'):page.index('class="dashboard-grid"')]
+    assert "Spent in February 2026" in hero
+    assert '<p class="stat-hero-amount">$42.10</p>' in hero
+    assert "Last month" in hero and "$250.00" in hero
+    assert "Forecast for March 2026" in hero and "$150.00" in hero
+    assert 'href="#unusual-title">0</a>' in hero
+    # It comes before every panel.
+    assert page.index('class="stat-hero"') < page.index('id="this-month-title"')
+
+
+def test_headline_card_before_enough_history(client: FlaskClient, user_a: User, today: date) -> None:
+    _add(user_a, "10.00", date(2026, 2, 2))
+    login(client, "a@example.com")
+    hero = _page(client).split('class="stat-hero"')[1].split('class="dashboard-grid"')[0]
+    assert "Not enough data yet" in hero

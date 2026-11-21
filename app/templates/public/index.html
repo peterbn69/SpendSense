@@ -4,26 +4,29 @@
 {% block title %}SpendSense · Track spending, plan next month{% endblock %}
 
 {% block content %}
-  <section class="hero" aria-labelledby="hero-title">
-    <h1 id="hero-title">See where your money goes, and what next month will cost.</h1>
-    <p class="lead">SpendSense is a simple expense tracker. Log what you spend, see your monthly totals by category, and get a forecast for next month.</p>
-    <p class="actions">
-      <a class="button" href="{{ url_for('auth.register') }}">Create an account</a>
-      <a class="button button-secondary" href="{{ url_for('auth.login') }}">Log in</a>
-    </p>
-  </section>
+  <div class="landing-hero">
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow">Personal expense tracker</p>
+      <h1 id="hero-title">See where your money goes, and what next month will cost.</h1>
+      <p class="lead">SpendSense is a simple expense tracker. Log what you spend, see your monthly totals by category, and get a forecast for next month.</p>
+      <p class="actions">
+        <a class="button button-large" href="{{ url_for('auth.register') }}">Create an account</a>
+        <a class="button button-secondary button-large" href="{{ url_for('auth.login') }}">Log in</a>
+      </p>
+    </section>
 
-  <section class="demo notice" aria-labelledby="demo-title">
-    <h2 id="demo-title">Try the running total</h2>
-    <p>A sample month: {{ demo_total | money }} spent so far. This demo saves nothing.</p>
-    <div class="field" data-running-total-reveal hidden>
-      <label class="field-label" for="demo-amount">Amount of a new expense</label>
-      <p class="field-hint" id="demo-amount-hint">Type an amount and watch the month's total update.</p>
-      <input class="field-input" id="demo-amount" type="text" inputmode="decimal" autocomplete="off"
-             placeholder="12.50" aria-describedby="demo-amount-hint">
-    </div>
-    {{ running_total(demo_totals, demo_month, demo_total, "demo-amount") }}
-  </section>
+    <section class="demo" aria-labelledby="demo-title">
+      <h2 id="demo-title" class="demo-title">Try the running total</h2>
+      <p class="demo-intro">A sample month: {{ demo_total | money }} spent so far. This demo saves nothing.</p>
+      <div class="field" data-running-total-reveal hidden>
+        <label class="field-label" for="demo-amount">Amount of a new expense</label>
+        <p class="field-hint" id="demo-amount-hint">Type an amount and watch the month's total update.</p>
+        <input class="field-input" id="demo-amount" type="text" inputmode="decimal" autocomplete="off"
+               placeholder="12.50" aria-describedby="demo-amount-hint">
+      </div>
+      {{ running_total(demo_totals, demo_month, demo_total, "demo-amount") }}
+    </section>
+  </div>
 
   <section aria-labelledby="features-title">
     <h2 id="features-title">What it does</h2>

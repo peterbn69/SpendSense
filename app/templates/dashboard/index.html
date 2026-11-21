@@ -17,10 +17,12 @@
 
 {% block content %}
   <div class="page-header">
-    <h1>Dashboard</h1>
+    <div>
+      <h1>Dashboard</h1>
+      <p class="page-subtitle">Signed in as <strong>{{ current_user.email }}</strong></p>
+    </div>
     <a class="button" href="{{ url_for('expenses.create') }}">Add expense</a>
   </div>
-  <p class="muted">You're signed in as <strong>{{ current_user.email }}</strong>.</p>
 
   {% if not dashboard.has_expenses %}
     <section class="notice empty-state" aria-labelledby="empty-title">
@@ -29,10 +31,35 @@
       <p><a class="button" href="{{ url_for('expenses.create') }}">Add your first expense</a></p>
     </section>
   {% else %}
+    {% set forecast = dashboard.forecast %}
+    {% set last_month = dashboard.months[-2] if dashboard.months | length > 1 else None %}
+    {# The headline: this month's total first, with the three numbers that put it in context. #}
+    <section class="stat-hero" aria-labelledby="stat-hero-title">
+      <h2 class="stat-hero-label" id="stat-hero-title">Spent in {{ dashboard.current_month | month_label }}</h2>
+      <p class="stat-hero-amount">{{ dashboard.month_total | money }}</p>
+      <ul class="stat-hero-facts">
+        {% if last_month %}
+          <li><span class="stat-fact-label">Last month</span> <strong>{{ last_month.amount | money }}</strong></li>
+        {% endif %}
+        <li>
+          <span class="stat-fact-label">Forecast for {{ forecast.month | month_label }}</span>
+          {% if forecast.ready %}
+            <strong>{{ forecast.total | money }}</strong>
+          {% else %}
+            <strong>Not enough data yet</strong>
+          {% endif %}
+        </li>
+        <li>
+          <span class="stat-fact-label">Unusual, last {{ dashboard.unusual_days }} days</span>
+          <strong><a href="#unusual-title">{{ dashboard.unusual | length }}</a></strong>
+        </li>
+      </ul>
+    </section>
+
     <div class="dashboard-grid">
       <section class="panel" aria-labelledby="this-month-title">
-        <h2 id="this-month-title">{{ dashboard.current_month | month_label }}</h2>
-        <p class="panel-total">Spent so far: <strong>{{ dashboard.month_total | money }}</strong></p>
+        <h2 id="this-month-title">Where it went</h2>
+        <p class="panel-subtitle">By category, {{ dashboard.current_month | month_label }}</p>
         {% if dashboard.categories %}
           {{ bars(dashboard.categories) }}
         {% else %}
@@ -40,12 +67,11 @@
         {% endif %}
       </section>
 
-      {% set forecast = dashboard.forecast %}
       <section class="panel" aria-labelledby="forecast-title">
         <h2 id="forecast-title">Forecast for {{ forecast.month | month_label }}</h2>
         {% if forecast.ready %}
           <p class="panel-total">Expected spending: <strong>{{ forecast.total | money }}</strong></p>
-          <p class="muted">Each category's average over the last {{ forecast.months_needed }} full months.</p>
+          <p class="panel-subtitle">Each category's average over the last {{ forecast.months_needed }} full months.</p>
           {% if forecast.categories %}
             {{ bars(forecast.categories) }}
           {% else %}
@@ -62,7 +88,7 @@
 
       <section class="panel" aria-labelledby="unusual-title">
         <h2 id="unusual-title">Unusual expenses</h2>
-        <p class="muted">
+        <p class="panel-subtitle">
           From the last {{ dashboard.unusual_days }} days: expenses far above your other expenses in the same category.
         </p>
         {% if dashboard.unusual %}
@@ -89,7 +115,7 @@
 
       <section class="panel" aria-labelledby="months-title">
         <h2 id="months-title">Last {{ dashboard.months | length }} months</h2>
-        <p class="muted">Total spent each month.</p>
+        <p class="panel-subtitle">Total spent each month.</p>
         {{ bars(dashboard.months, current_label="so far") }}
       </section>
     </div>
