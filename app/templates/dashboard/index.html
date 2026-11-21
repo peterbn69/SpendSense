@@ -40,6 +40,26 @@
         {% endif %}
       </section>
 
+      {% set forecast = dashboard.forecast %}
+      <section class="panel" aria-labelledby="forecast-title">
+        <h2 id="forecast-title">Forecast for {{ forecast.month | month_label }}</h2>
+        {% if forecast.ready %}
+          <p class="panel-total">Expected spending: <strong>{{ forecast.total | money }}</strong></p>
+          <p class="muted">Each category's average over the last {{ forecast.months_needed }} full months.</p>
+          {% if forecast.categories %}
+            {{ bars(forecast.categories) }}
+          {% else %}
+            <p class="muted">No spending in the last {{ forecast.months_needed }} full months.</p>
+          {% endif %}
+        {% else %}
+          <p><strong>Not enough data yet.</strong></p>
+          <p class="muted">
+            The forecast needs {{ forecast.months_needed }} full months of history, counted from the month of your
+            first expense and not including this month. You have {{ forecast.months_of_history }} so far.
+          </p>
+        {% endif %}
+      </section>
+
       <section class="panel" aria-labelledby="months-title">
         <h2 id="months-title">Last {{ dashboard.months | length }} months</h2>
         <p class="muted">Total spent each month.</p>

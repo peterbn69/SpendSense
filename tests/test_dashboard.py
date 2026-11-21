@@ -167,3 +167,148 @@ def test_bars_are_readable_without_css(client: FlaskClient, user_a: User, today:
     text = " ".join(re.sub(r"<[^>]+>", " ", row.group(0)).split())
     assert text == "Health & personal care $12.00".replace("&", "&amp;")
     assert 'class="bar-track" aria-hidden="true"' in row.group(0)
+
+
+# --- Forecast (M10) --------------------------------------------------------------------------------
+# TODAY is 2026-02-14: the completed months are ..., Nov 2025, Dec 2025, Jan 2026; the forecast is for March 2026.
+
+
+def test_first_spent_on(db: SQLAlchemy, user_a: User, user_b: User) -> None:
+    assert expenses_repo.first_spent_on(user_a.id) is None
+    _add(user_b, "1.00", date(2020, 1, 1))
+    _add(user_a, "1.00", date(2025, 6, 9))
+    _add(user_a, "1.00", date(2025, 3, 2))
+    assert expenses_repo.first_spent_on(user_a.id) == date(2025, 3, 2)
+
+
+def test_monthly_category_totals_before_a_day(db: SQLAlchemy, user_a: User, user_b: User) -> None:
+    _add(user_a, "1.00", date(2026, 1, 5), "dining")
+    _add(user_a, "2.00", date(2026, 1, 31), "dining")
+    _add(user_a, "4.00", date(2026, 1, 9), "travel")
+    _add(user_a, "8.00", date(2026, 2, 1), "dining")  # on the cut-off day: left out
+    _add(user_b, "16.00", date(2026, 1, 5), "dining")
+    assert expenses_repo.monthly_category_totals(user_a.id, before=date(2026, 2, 1)) == {
+        ("dining", date(2026, 1, 1)): Decimal("3.00"),
+        ("travel", date(2026, 1, 1)): Decimal("4.00"),
+    }
+
+
+@pytest.mark.parametrize(
+    ("first_expense", "months_of_history"),
+    [(None, 0), (date(2026, 2, 1), 0), (date(2026, 1, 31), 1), (date(2025, 12, 1), 2)],
+)
+def test_not_enough_history(
+    db: SQLAlchemy, user_a: User, today: date, first_expense: date | None, months_of_history: int
+) -> None:
+    if first_expense:
+        _add(user_a, "500.00", first_expense)
+    result = insights.next_month_forecast(user_a.id)
+    assert result.ready is False
+    assert result.total is None
+    assert result.categories == []
+    assert result.months_of_history == months_of_history
+    assert result.months_needed == 3
+    assert result.month == date(2026, 3, 1)
+
+
+def test_three_full_months_give_a_forecast(db: SQLAlchemy, user_a: User, today: date) -> None:
+    _add(user_a, "30.00", date(2025, 11, 1), "dining")
+    _add(user_a, "60.00", date(2025, 12, 15), "dining")
+    _add(user_a, "90.00", date(2026, 1, 31), "dining")
+    result = insights.next_month_forecast(user_a.id)
+    assert result.ready is True
+    assert result.months_of_history == 3
+    assert [(bar.label, bar.amount) for bar in result.categories] == [("Dining out", Decimal("60.00"))]
+    assert result.total == Decimal("60.00")
+
+
+def test_this_month_is_left_out(db: SQLAlchemy, user_a: User, today: date) -> None:
+    for month in (11, 12):
+        _add(user_a, "30.00", date(2025, month, 1))
+    _add(user_a, "30.00", date(2026, 1, 1))
+    _add(user_a, "9000.00", date(2026, 2, 14))  # this month, partial: not part of the history
+    assert insights.next_month_forecast(user_a.id).total == Decimal("30.00")
+
+
+def test_only_the_last_three_months_count(db: SQLAlchemy, user_a: User, today: date) -> None:
+    _add(user_a, "5000.00", date(2025, 6, 1), "travel")  # months ago
+    for month, amount in ((11, "10.00"), (12, "20.00")):
+        _add(user_a, amount, date(2025, month, 3), "groceries")
+    _add(user_a, "30.00", date(2026, 1, 3), "groceries")
+    result = insights.next_month_forecast(user_a.id)
+    assert result.months_of_history == 8  # Jun 2025 through Jan 2026
+    assert [(bar.label, bar.amount) for bar in result.categories] == [("Groceries", Decimal("20.00"))]
+
+
+def test_history_is_zero_filled_from_the_first_expense_in_any_category(
+    db: SQLAlchemy, user_a: User, today: date
+) -> None:
+    _add(user_a, "300.00", date(2025, 11, 2), "housing")
+    _add(user_a, "90.00", date(2026, 1, 20), "health")  # one month of health spending: averaged with two zeros
+    result = insights.next_month_forecast(user_a.id)
+    assert [(bar.label, bar.amount) for bar in result.categories] == [
+        ("Housing & utilities", Decimal("100.00")),
+        ("Health & personal care", Decimal("30.00")),
+    ]
+    assert result.total == Decimal("130.00")
+
+
+def test_total_is_the_sum_of_rounded_category_forecasts(db: SQLAlchemy, user_a: User, today: date) -> None:
+    # Each category averages to 0.0033..., rounded to 0.00 and left out; dining averages to 3.3333... -> 3.33.
+    for key in ("groceries", "transport"):
+        _add(user_a, "0.01", date(2026, 1, 2), key)
+    _add(user_a, "10.00", date(2025, 11, 2), "dining")
+    result = insights.next_month_forecast(user_a.id)
+    assert [(bar.label, bar.amount) for bar in result.categories] == [("Dining out", Decimal("3.33"))]
+    assert result.total == Decimal("3.33")
+
+
+def test_forecast_ignores_other_users(db: SQLAlchemy, user_a: User, user_b: User, today: date) -> None:
+    _add(user_a, "30.00", date(2025, 11, 1))
+    _add(user_b, "999.00", date(2025, 12, 1))
+    _add(user_b, "999.00", date(2026, 1, 1))
+    result = insights.next_month_forecast(user_a.id)
+    assert result.total == Decimal("10.00")
+
+
+def test_forecast_for_next_month_crosses_a_year(db: SQLAlchemy, user_a: User, fake_today: Callable[[date], None]) -> None:
+    fake_today(date(2026, 12, 5))
+    _add(user_a, "12.00", date(2026, 9, 1))
+    result = insights.next_month_forecast(user_a.id)
+    assert result.month == date(2027, 1, 1)
+    assert result.months_of_history == 3  # Sep, Oct, Nov
+    assert result.total == Decimal("4.00")
+
+
+def test_page_says_not_enough_data_yet(client: FlaskClient, user_a: User, today: date) -> None:
+    _add(user_a, "40.00", date(2026, 1, 5))
+    login(client, "a@example.com")
+    page = _page(client)
+    assert "Forecast for March 2026" in page
+    assert "Not enough data yet." in page
+    assert "You have 1 so far." in page
+    assert "Expected spending" not in page
+
+
+def test_page_shows_the_forecast(client: FlaskClient, user_a: User, today: date) -> None:
+    for month in (11, 12):
+        _add(user_a, "1500.00", date(2025, month, 1), "housing")
+        _add(user_a, "75.00", date(2025, month, 9), "dining")
+    _add(user_a, "1500.00", date(2026, 1, 1), "housing")
+    login(client, "a@example.com")
+    page = _page(client)
+    assert "Forecast for March 2026" in page
+    assert "Expected spending: <strong>$1,550.00</strong>" in page
+    assert "Not enough data yet" not in page
+    forecast_panel = page[page.index('id="forecast-title"'):page.index('id="months-title"')]
+    assert "Housing &amp; utilities" in forecast_panel and "$1,500.00" in forecast_panel
+    assert "Dining out" in forecast_panel and "$50.00" in forecast_panel
+    assert forecast_panel.index("Housing") < forecast_panel.index("Dining")
+
+
+def test_page_when_the_last_three_months_were_empty(client: FlaskClient, user_a: User, today: date) -> None:
+    _add(user_a, "40.00", date(2025, 6, 5))
+    login(client, "a@example.com")
+    page = _page(client)
+    assert "Expected spending: <strong>$0.00</strong>" in page
+    assert "No spending in the last 3 full months." in page

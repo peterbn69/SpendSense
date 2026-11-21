@@ -1,10 +1,16 @@
-"""What the dashboard shows: monthly totals and this month's spending per category, ready to draw as bars."""
+"""
+What the dashboard shows:
+- Monthly totals
+- This month's spending per category and next month's forecast
+- Ready to draw as bars.
+"""
 
 from dataclasses import dataclass
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
 from app import categories, clock
+from app.analytics import forecast as forecasting
 from app.analytics.months import add_months, month_range, zero_filled
 from app.repositories import expenses
 
@@ -25,12 +31,26 @@ class MonthBar(Bar):
 
 
 @dataclass(frozen=True)
+class Forecast:
+    month: date  # the month being forecast (next month)
+    months_of_history: int  # completed months from the first expense through last month
+    months_needed: int
+    total: Decimal | None  # None when there isn't enough history yet
+    categories: list[Bar]  # largest first; only forecasts above 0
+
+    @property
+    def ready(self) -> bool:
+        return self.total is not None
+
+
+@dataclass(frozen=True)
 class Dashboard:
     has_expenses: bool
     current_month: date
     month_total: Decimal  # spent so far this month
     months: list[MonthBar]  # oldest first, zero-filled
     categories: list[Bar]  # this month, largest first; only categories with spending
+    forecast: Forecast
 
 
 def dashboard(user_id: int) -> Dashboard:
@@ -50,22 +70,60 @@ def dashboard(user_id: int) -> Dashboard:
     ]
 
     by_category = expenses.category_totals(user_id, current, clock.today())
-    order = {key: index for index, key in enumerate(categories.KEYS)}
-    ranked = sorted(by_category.items(), key=lambda item: (-item[1], order.get(item[0], len(order))))
-    category_max = ranked[0][1] if ranked else Decimal("0")
-    category_bars = [
-        Bar(label=categories.label(key), amount=total, percent=_percent(total, category_max))
-        for key, total in ranked
-        if total > 0
-    ]
 
     return Dashboard(
         has_expenses=expenses.count_for_user(user_id) > 0,
         current_month=current,
         month_total=sum(by_category.values(), Decimal("0")),
         months=months,
-        categories=category_bars,
+        categories=_ranked_bars(by_category),
+        forecast=next_month_forecast(user_id),
     )
+
+
+def next_month_forecast(user_id: int) -> Forecast:
+    # Each category's forecast for next month, from completed months only (this month is left out).
+
+    current = clock.current_month()
+    last_complete = add_months(current, -1)
+    first_day = expenses.first_spent_on(user_id)
+    history_months = month_range(first_day, last_complete) if first_day else []
+    needed = forecasting.WINDOW
+
+    if len(history_months) < needed:
+        return Forecast(add_months(current, 1), len(history_months), needed, total=None, categories=[])
+
+    totals = expenses.monthly_category_totals(user_id, before=current)
+    by_category: dict[str, Decimal] = {}
+    for key in categories.KEYS:
+        history = [amount for _, amount in zero_filled(_one_category(totals, key), history_months)]
+        predicted = forecasting.forecast(history)
+        if predicted is not None:
+            by_category[key] = predicted
+
+    return Forecast(
+        month=add_months(current, 1),
+        months_of_history=len(history_months),
+        months_needed=needed,
+        # The sum of the rounded category forecasts, so the total matches the bars shown.
+        total=sum(by_category.values(), Decimal("0.00")),
+        categories=_ranked_bars(by_category),
+    )
+
+
+def _one_category(totals: dict[tuple[str, date], Decimal], key: str) -> dict[date, Decimal]:
+    return {month: amount for (category, month), amount in totals.items() if category == key}
+
+
+def _ranked_bars(totals: dict[str, Decimal]) -> list[Bar]:
+    # Categories above 0, largest first; ties keep the fixed category order.
+    order = {key: index for index, key in enumerate(categories.KEYS)}
+    ranked = sorted(
+        ((key, total) for key, total in totals.items() if total > 0),
+        key=lambda item: (-item[1], order.get(item[0], len(order))),
+    )
+    largest = ranked[0][1] if ranked else Decimal("0")
+    return [Bar(label=categories.label(key), amount=total, percent=_percent(total, largest)) for key, total in ranked]
 
 
 def _percent(amount: Decimal, largest: Decimal) -> int:

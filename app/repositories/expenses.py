@@ -86,3 +86,19 @@ def category_totals(user_id: int, first_day: date, last_day: date) -> dict[str, 
         .group_by(Expense.category)
     )
     return {category: total for category, total in db.session.execute(query)}
+
+
+def first_spent_on(user_id: int) -> date | None:
+    # The date of the user's earliest expense, or None if they have none.
+    return db.session.scalar(select(func.min(Expense.spent_on)).where(Expense.user_id == user_id))
+
+
+def monthly_category_totals(user_id: int, before: date) -> dict[tuple[str, date], Decimal]:
+    # Spending per (category, first day of month) for expenses before `before`; empty combinations are absent.
+    month = func.date_trunc("month", Expense.spent_on).cast(Date)
+    query = (
+        select(Expense.category, month, func.sum(Expense.amount))
+        .where(Expense.user_id == user_id, Expense.spent_on < before)
+        .group_by(Expense.category, month)
+    )
+    return {(category, first_day): total for category, first_day, total in db.session.execute(query)}
