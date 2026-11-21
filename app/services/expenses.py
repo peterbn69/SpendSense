@@ -26,7 +26,8 @@ DATE_TOO_EARLY_MESSAGE = f"Use a date on or after {MIN_DATE:%B} {MIN_DATE.day}, 
 NOTE_LENGTH_MESSAGE = f"Use at most {NOTE_MAX_LENGTH} characters."
 
 # Plain digits with an optional decimal part: no signs, exponents, NaN or Infinity.
-_AMOUNT_PATTERN = re.compile(r"\d+(?:\.\d+)?|\.\d+")
+# re.ASCII: without it \d also matches digits such as "１２" or "٣", which Decimal would accept.
+_AMOUNT_PATTERN = re.compile(r"\d+(?:\.\d+)?|\.\d+", re.ASCII)
 
 
 class ExpenseRuleError(ValueError):

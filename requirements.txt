@@ -8,3 +8,4 @@ psycopg[binary]==3.3.9
 flask-login==0.6.3
 argon2-cffi==25.1.0
 gunicorn==27.0.1
+flask-limiter==4.1.1

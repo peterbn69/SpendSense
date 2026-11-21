@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Request not accepted · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="notice">
+    <h1>{{ "This form has expired" if csrf_failed else "Request not accepted" }}</h1>
+    {% if csrf_failed %}
+      <p>For your security, forms expire after a while or when you log in or out in another tab. Nothing was saved.</p>
+      <p>Go back, reload the page, and try again.</p>
+    {% else %}
+      <p>We couldn't understand that request, so nothing was changed. Please go back and try again.</p>
+    {% endif %}
+    <p><a href="{{ url_for('public.index') }}">Back to the home page</a></p>
+  </section>
+{% endblock %}

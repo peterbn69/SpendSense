@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Not allowed · SpendSense{% endblock %}
+
+{% block content %}
+  <section class="notice">
+    <h1>Not allowed</h1>
+    <p>You don't have permission to do that.</p>
+    <p><a href="{{ url_for('public.index') }}">Back to the home page</a></p>
+  </section>
+{% endblock %}

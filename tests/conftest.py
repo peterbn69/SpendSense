@@ -22,7 +22,7 @@ ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 # Test-only values passed as overrides, so tests never depend on the developer's environment.
 # The database URL is a placeholder for tests that build their own app; it is never connected to.
 TEST_SETTINGS = {
-    "SECRET_KEY": "test-only-not-a-secret",
+    "SECRET_KEY": "test-only-not-a-secret-0123456789abcdef",
     "APP_TIMEZONE": "America/Toronto",
     "SQLALCHEMY_DATABASE_URI": "postgresql+psycopg://placeholder@localhost/not-used",
 }
