@@ -16,7 +16,11 @@ def test_add_assigns_id_and_fields(db: SQLAlchemy, user_a: User) -> None:
     expense = expenses.add(user_a.id, Decimal("10.50"), "groceries", date(2026, 10, 5), "Market")
     assert expense.id >= 1
     assert (expense.user_id, expense.amount, expense.category, expense.spent_on, expense.note) == (
-        user_a.id, Decimal("10.50"), "groceries", date(2026, 10, 5), "Market",
+        user_a.id,
+        Decimal("10.50"),
+        "groceries",
+        date(2026, 10, 5),
+        "Market",
     )
 
 

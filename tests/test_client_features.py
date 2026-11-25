@@ -51,7 +51,7 @@ def _attr(page: str, name: str) -> str:
 
 
 def _running_total_text(page: str) -> str:
-    match = re.search(r"<p class=\"running-total\".*?</p>", page, re.S)
+    match = re.search(r"<p class=\"running-total\".*?</p>", page, re.DOTALL)
     assert match
     return " ".join(re.sub(r"<[^>]+>", " ", match.group(0)).split())
 
@@ -83,7 +83,9 @@ def test_monthly_totals_can_leave_one_expense_out(db: SQLAlchemy, user_a: User) 
 # --- Expense form --------------------------------------------------------------------------------
 
 
-def test_new_form_embeds_every_month_and_starts_at_this_month(client_a: FlaskClient, user_a: User, user_b: User) -> None:
+def test_new_form_embeds_every_month_and_starts_at_this_month(
+    client_a: FlaskClient, user_a: User, user_b: User
+) -> None:
     _add(user_a, "1234.50", date(2026, 11, 3))
     _add(user_a, "0.75", date(2026, 11, 20))
     _add(user_a, "40.00", date(2026, 9, 9))
@@ -124,12 +126,20 @@ def test_edit_form_for_the_only_expense_in_a_month(client_a: FlaskClient, user_a
     assert _running_total_text(page) == "Spent in August 2026 : $8.00"
 
 
-@pytest.mark.parametrize(("typed", "expected"), [("12.50", "$22.50"), ("abc", "$10.00"), ("-5", "$10.00"), ("1000000", "$10.00")])
+@pytest.mark.parametrize(
+    ("typed", "expected"), [("12.50", "$22.50"), ("abc", "$10.00"), ("-5", "$10.00"), ("1000000", "$10.00")]
+)
 def test_rerendered_form_counts_only_a_valid_typed_amount(
     client_a: FlaskClient, user_a: User, typed: str, expected: str
 ) -> None:
     _add(user_a, "10.00", date(2026, 10, 1))
-    data = {"amount": typed, "category": "", "spent_on": "2026-10-05", "note": "", "csrf_token": csrf_token(client_a, "/expenses/new")}
+    data = {
+        "amount": typed,
+        "category": "",
+        "spent_on": "2026-10-05",
+        "note": "",
+        "csrf_token": csrf_token(client_a, "/expenses/new"),
+    }
     page = client_a.post("/expenses/new", data=data).get_data(as_text=True)
     assert _running_total_text(page) == f"Spent in October 2026 : {expected}"
 
@@ -171,7 +181,9 @@ def test_landing_demo_starts_from_the_sample_total(client: FlaskClient, db: SQLA
     assert "js/running-total.js" in page
 
 
-def test_landing_demo_saves_nothing_and_hides_its_input_without_js(client: FlaskClient, db: SQLAlchemy, today: date) -> None:
+def test_landing_demo_saves_nothing_and_hides_its_input_without_js(
+    client: FlaskClient, db: SQLAlchemy, today: date
+) -> None:
     page = client.get("/").get_data(as_text=True)
     assert "<form" not in page  # logged out: no form at all, so the demo can't submit anything
     assert re.search(r"<div class=\"field\" data-running-total-reveal hidden>", page)
@@ -189,7 +201,9 @@ def three_expenses(user_a: User) -> None:
 
 
 def _hidden_categories(page: str) -> list[tuple[str, bool]]:
-    return [(category, hidden == " hidden") for category, hidden in re.findall(r'data-category="(\w+)"( hidden)?>', page)]
+    return [
+        (category, hidden == " hidden") for category, hidden in re.findall(r'data-category="(\w+)"( hidden)?>', page)
+    ]
 
 
 def test_list_without_filter_shows_everything(client_a: FlaskClient, three_expenses: None) -> None:
@@ -203,7 +217,7 @@ def test_list_without_filter_shows_everything(client_a: FlaskClient, three_expen
 
 def test_filter_form_is_a_get_form_without_csrf(client_a: FlaskClient, three_expenses: None) -> None:
     page = client_a.get("/expenses/").get_data(as_text=True)
-    form = re.search(r"<form class=\"filter-form\".*?</form>", page, re.S)
+    form = re.search(r"<form class=\"filter-form\".*?</form>", page, re.DOTALL)
     assert form
     assert 'method="get"' in form.group(0)
     assert "csrf_token" not in form.group(0)

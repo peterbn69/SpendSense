@@ -27,7 +27,9 @@ class SeedRefusedError(Exception):
         self.existing = existing
 
 
-def seed_expenses(user_id: int, *, months: int = DEFAULT_MONTHS, reset: bool = False, rng_seed: int | None = None) -> int:
+def seed_expenses(
+    user_id: int, *, months: int = DEFAULT_MONTHS, reset: bool = False, rng_seed: int | None = None
+) -> int:
     # Add fake expenses for one user and commit; returns how many were added.
     existing = expenses.count_for_user(user_id)
     if existing and not reset:

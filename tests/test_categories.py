@@ -5,8 +5,17 @@ import pytest
 from app import categories
 
 SPEC_KEYS = [
-    "housing", "groceries", "dining", "transport", "health", "shopping",
-    "entertainment", "subscriptions", "education", "travel", "other",
+    "housing",
+    "groceries",
+    "dining",
+    "transport",
+    "health",
+    "shopping",
+    "entertainment",
+    "subscriptions",
+    "education",
+    "travel",
+    "other",
 ]
 
 

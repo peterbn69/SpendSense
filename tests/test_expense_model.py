@@ -38,7 +38,7 @@ def test_amount_round_trips_as_decimal(db: SQLAlchemy, user_a: User) -> None:
     assert isinstance(stored, Decimal)
 
 
-@pytest.mark.parametrize("amount", [Decimal("-0.01"), Decimal("0"), Decimal("-50.00")])
+@pytest.mark.parametrize("amount", [Decimal("-0.01"), Decimal(0), Decimal("-50.00")])
 def test_non_positive_amount_rejected(db: SQLAlchemy, user_a: User, amount: Decimal) -> None:
     with pytest.raises(IntegrityError, match="ck_expenses_amount_positive"):
         _insert(db, user_a, amount=amount)

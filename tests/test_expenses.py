@@ -36,7 +36,9 @@ def _post(client: FlaskClient, path: str, data: dict[str, str] | None = None, to
     return client.post(path, data={**(data or {}), "csrf_token": csrf_token(client, token_from)})
 
 
-def _add(user: User, amount: str = "10.00", spent_on: date = date(2026, 11, 1), note: str = "", category: str = "groceries") -> Expense:
+def _add(
+    user: User, amount: str = "10.00", spent_on: date = date(2026, 11, 1), note: str = "", category: str = "groceries"
+) -> Expense:
     expense = expenses_repo.add(user.id, Decimal(amount), category, spent_on, note)
     expenses_repo.db.session.commit()
     return expense
@@ -78,14 +80,24 @@ def test_create_saves_and_redirects(client_a: FlaskClient, user_a: User) -> None
 
     (expense,) = expenses_repo.list_for_user(user_a.id)
     assert (expense.amount, expense.category, expense.spent_on, expense.note) == (
-        Decimal("12.50"), "dining", date(2026, 11, 19), "Lunch with Sam",
+        Decimal("12.50"),
+        "dining",
+        date(2026, 11, 19),
+        "Lunch with Sam",
     )
     assert "Expense added." in _html(client_a.get(LIST))
 
 
 @pytest.mark.parametrize(
     ("typed", "stored"),
-    [("12", "12.00"), ("12.5", "12.50"), (".5", "0.50"), ("0.01", "0.01"), ("999999.99", "999999.99"), (" 7.25 ", "7.25")],
+    [
+        ("12", "12.00"),
+        ("12.5", "12.50"),
+        (".5", "0.50"),
+        ("0.01", "0.01"),
+        ("999999.99", "999999.99"),
+        (" 7.25 ", "7.25"),
+    ],
 )
 def test_amount_accepted(client_a: FlaskClient, user_a: User, typed: str, stored: str) -> None:
     assert _post(client_a, NEW, {**VALID, "amount": typed}).status_code == 302
@@ -253,7 +265,9 @@ def test_edit_form_is_prefilled(client_a: FlaskClient, user_a: User) -> None:
 def test_edit_saves_changes(client_a: FlaskClient, user_a: User) -> None:
     expense = _add(user_a)
     path = f"/expenses/{expense.id}/edit"
-    response = _post(client_a, path, {"amount": "15.75", "category": "transport", "spent_on": "2026-11-03", "note": "Taxi"}, path)
+    response = _post(
+        client_a, path, {"amount": "15.75", "category": "transport", "spent_on": "2026-11-03", "note": "Taxi"}, path
+    )
     assert response.status_code == 302
     assert response.headers["Location"] == LIST
 
@@ -261,7 +275,10 @@ def test_edit_saves_changes(client_a: FlaskClient, user_a: User) -> None:
     changed = expenses_repo.get(user_a.id, expense.id)
     assert changed is not None
     assert (changed.amount, changed.category, changed.spent_on, changed.note) == (
-        Decimal("15.75"), "transport", date(2026, 11, 3), "Taxi",
+        Decimal("15.75"),
+        "transport",
+        date(2026, 11, 3),
+        "Taxi",
     )
 
 
@@ -349,8 +366,8 @@ def test_missing_or_impossible_id_is_404(client_a: FlaskClient, expense_id: str)
 @pytest.mark.parametrize(
     ("fields", "field"),
     [
-        ({"amount": Decimal("0")}, "amount"),
-        ({"amount": Decimal("1000000")}, "amount"),
+        ({"amount": Decimal(0)}, "amount"),
+        ({"amount": Decimal(1000000)}, "amount"),
         ({"amount": Decimal("1.005")}, "amount"),
         ({"amount": Decimal("NaN")}, "amount"),
         ({"category": "rent"}, "category"),

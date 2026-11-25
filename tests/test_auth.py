@@ -88,7 +88,7 @@ def test_register_page_has_form(client: FlaskClient, db: SQLAlchemy) -> None:
     response = client.get(REGISTER)
     assert response.status_code == 200
     html = response.get_data(as_text=True)
-    assert "<h1 id=\"register-title\">Sign up</h1>" in html
+    assert '<h1 id="register-title">Sign up</h1>' in html
     assert 'name="csrf_token"' in html
     for name in ("email", "password", "confirm"):
         assert f'name="{name}"' in html

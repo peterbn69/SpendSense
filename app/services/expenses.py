@@ -9,7 +9,7 @@ from app.extensions import db
 from app.models import Expense
 from app.repositories import expenses
 
-AMOUNT_LIMIT = Decimal("1000000")
+AMOUNT_LIMIT = Decimal(1000000)
 MIN_DATE = date(2000, 1, 1)
 NOTE_MAX_LENGTH = 200
 MAX_EXPENSE_ID = 2**63 - 1
@@ -107,7 +107,9 @@ def create(user_id: int, amount: Decimal, category: str, spent_on: date, note: s
     return expense
 
 
-def update(user_id: int, expense_id: int, amount: Decimal, category: str, spent_on: date, note: str = "") -> Expense | None:
+def update(
+    user_id: int, expense_id: int, amount: Decimal, category: str, spent_on: date, note: str = ""
+) -> Expense | None:
     # The changed expense, or None if it isn't the user's (the caller answers 404).
     if get_expense(user_id, expense_id) is None:
         return None

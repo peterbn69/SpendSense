@@ -16,12 +16,12 @@ def d(*values: str) -> list[Decimal]:
 @pytest.mark.parametrize("count", range(MIN_POINTS))
 def test_too_few_points_give_no_result(count: int) -> None:
     others = [Decimal(n + 1) for n in range(count)]
-    assert z_score(Decimal("1000"), others) is None
+    assert z_score(Decimal(1000), others) is None
 
 
 def test_five_points_are_enough() -> None:
     assert MIN_POINTS == 5
-    assert z_score(Decimal("1000"), d("1", "2", "3", "4", "5")) is not None
+    assert z_score(Decimal(1000), d("1", "2", "3", "4", "5")) is not None
 
 
 @pytest.mark.parametrize("value", ["12.00", "9999.99", "0.01"])
@@ -41,9 +41,9 @@ def test_matches_the_textbook_sample_z_score() -> None:
 
 def test_sign_shows_direction() -> None:
     others = d("10", "11", "12", "13", "14")
-    assert z_score(Decimal("12"), others) == 0
-    assert z_score(Decimal("20"), others) > 0  # type: ignore[operator]
-    assert z_score(Decimal("1"), others) < 0  # type: ignore[operator]
+    assert z_score(Decimal(12), others) == 0
+    assert z_score(Decimal(20), others) > 0  # type: ignore[operator]
+    assert z_score(Decimal(1), others) < 0  # type: ignore[operator]
 
 
 def test_works_with_huge_amounts() -> None:
@@ -115,7 +115,7 @@ def test_threshold_is_inclusive_and_adjustable() -> None:
 
 def test_matches_z_score_for_every_expense() -> None:
     rows = _rows("groceries", "35.10", "88.00", "140.00", "52.25", "61.60", "385.40", "73.15", "99.99")
-    flags = flag_unusual(rows, threshold=Decimal("-100"))
+    flags = flag_unusual(rows, threshold=Decimal(-100))
     for key, _, amount in rows:
         others = [other for other_key, _, other in rows if other_key != key]
         expected = z_score(amount, others)

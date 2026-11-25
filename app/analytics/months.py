@@ -23,4 +23,4 @@ def month_range(first: date, last: date) -> list[date]:
 
 def zero_filled(totals: dict[date, Decimal], months: list[date]) -> list[tuple[date, Decimal]]:
     # (month, total) for every month in `months`
-    return [(month, totals.get(month, Decimal("0"))) for month in months]
+    return [(month, totals.get(month, Decimal(0))) for month in months]

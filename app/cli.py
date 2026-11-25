@@ -16,8 +16,13 @@ def register_commands(app: Flask) -> None:
 
 @click.command("seed")
 @click.option("--email", default=DEFAULT_SEED_EMAIL, show_default=True, help="The user to fill; created if missing.")
-@click.option("--months", type=click.IntRange(1, 24), default=seed.DEFAULT_MONTHS, show_default=True,
-              help="Completed months of history, plus the current month up to today.")
+@click.option(
+    "--months",
+    type=click.IntRange(1, 24),
+    default=seed.DEFAULT_MONTHS,
+    show_default=True,
+    help="Completed months of history, plus the current month up to today.",
+)
 @click.option("--reset", is_flag=True, help="Delete this user's existing expenses first.")
 @click.option("--random-seed", type=int, default=None, help="Fixed seed for repeatable data.")
 def seed_command(email: str, months: int, reset: bool, random_seed: int | None) -> None:
@@ -41,5 +46,7 @@ def seed_command(email: str, months: int, reset: bool, random_seed: int | None) 
     try:
         added = seed.seed_expenses(user.id, months=months, reset=reset, rng_seed=random_seed)
     except seed.SeedRefusedError as error:
-        raise click.ClickException(f"{user.email} already has {error.existing} expenses. Pass --reset to replace them.") from None
+        raise click.ClickException(
+            f"{user.email} already has {error.existing} expenses. Pass --reset to replace them."
+        ) from None
     click.echo(f"Added {added} expenses for {user.email}.")

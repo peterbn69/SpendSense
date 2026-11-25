@@ -23,7 +23,10 @@ def test_add_months(month: date, offset: int, expected: date) -> None:
 
 def test_month_range_crosses_a_year() -> None:
     assert month_range(date(2025, 11, 20), date(2026, 2, 3)) == [
-        date(2025, 11, 1), date(2025, 12, 1), date(2026, 1, 1), date(2026, 2, 1),
+        date(2025, 11, 1),
+        date(2025, 12, 1),
+        date(2026, 1, 1),
+        date(2026, 2, 1),
     ]
 
 
@@ -34,8 +37,8 @@ def test_month_range_single_and_empty() -> None:
 
 def test_zero_filled() -> None:
     months = month_range(date(2026, 9, 1), date(2026, 11, 1))
-    assert zero_filled({date(2026, 10, 1): Decimal("5.00"), date(2025, 1, 1): Decimal("9")}, months) == [
-        (date(2026, 9, 1), Decimal("0")),
+    assert zero_filled({date(2026, 10, 1): Decimal("5.00"), date(2025, 1, 1): Decimal(9)}, months) == [
+        (date(2026, 9, 1), Decimal(0)),
         (date(2026, 10, 1), Decimal("5.00")),
-        (date(2026, 11, 1), Decimal("0")),
+        (date(2026, 11, 1), Decimal(0)),
     ]

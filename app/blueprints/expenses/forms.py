@@ -3,8 +3,21 @@ from decimal import Decimal
 from typing import Any
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, Field, SelectChoice, SelectField, StringField, SubmitField
-from wtforms.validators import DataRequired, InputRequired, Length, StopValidation, ValidationError
+from wtforms import (
+    DateField,
+    Field,
+    SelectChoice,
+    SelectField,
+    StringField,
+    SubmitField,
+)
+from wtforms.validators import (
+    DataRequired,
+    InputRequired,
+    Length,
+    StopValidation,
+    ValidationError,
+)
 
 from app import categories, clock
 from app.services import expenses
@@ -56,15 +69,16 @@ class ExpenseForm(FlaskForm):
     )
     category = SelectField(
         "Category",
-        choices=[SelectChoice("", "Choose a category")] + [SelectChoice(key, label) for key, label in categories.CHOICES],
+        choices=[SelectChoice("", "Choose a category")]
+        + [SelectChoice(key, label) for key, label in categories.CHOICES],
         validators=[DataRequired(message=CATEGORY_MESSAGE)],
-        invalid_choice_message=CATEGORY_MESSAGE,
+        invalid_choice_message=CATEGORY_MESSAGE,  # pyrefly: ignore[unexpected-keyword]
     )
     spent_on = DateField(
         "Date",
         # InputRequired (not DataRequired), so text that isn't a date gets the "real date" message.
         validators=[InputRequired(message=DATE_REQUIRED_MESSAGE)],
-        invalid_value_message=DATE_INVALID_MESSAGE,
+        invalid_value_message=DATE_INVALID_MESSAGE,  # pyrefly: ignore[unexpected-keyword]
     )
     note = StringField(
         "Note (optional)",

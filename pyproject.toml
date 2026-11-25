@@ -2,3 +2,7 @@
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["migrations"]

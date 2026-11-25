@@ -59,9 +59,9 @@ def test_category_totals_between_two_days(db: SQLAlchemy, user_a: User, user_b: 
 def test_new_user_has_an_empty_dashboard(db: SQLAlchemy, user_a: User, today: date) -> None:
     board = insights.dashboard(user_a.id)
     assert board.has_expenses is False
-    assert board.month_total == Decimal("0")
+    assert board.month_total == Decimal(0)
     assert board.categories == []
-    assert [bar.amount for bar in board.months] == [Decimal("0")] * 6
+    assert [bar.amount for bar in board.months] == [Decimal(0)] * 6
     assert all(bar.percent == 0 for bar in board.months)
 
 
@@ -75,10 +75,10 @@ def test_six_months_zero_filled_across_a_year(db: SQLAlchemy, user_a: User, user
     board = insights.dashboard(user_a.id)
     assert [(bar.label, bar.amount, bar.percent, bar.is_current) for bar in board.months] == [
         ("Sep 2025", Decimal("100.00"), 100, False),
-        ("Oct 2025", Decimal("0"), 0, False),
-        ("Nov 2025", Decimal("0"), 0, False),
+        ("Oct 2025", Decimal(0), 0, False),
+        ("Nov 2025", Decimal(0), 0, False),
         ("Dec 2025", Decimal("50.00"), 50, False),
-        ("Jan 2026", Decimal("0"), 0, False),
+        ("Jan 2026", Decimal(0), 0, False),
         ("Feb 2026", Decimal("25.00"), 25, True),
     ]
     assert board.has_expenses is True
@@ -162,7 +162,7 @@ def test_bars_are_readable_without_css(client: FlaskClient, user_a: User, today:
     _add(user_a, "12.00", date(2026, 2, 1), "health")
     login(client, "a@example.com")
     page = _page(client)
-    row = re.search(r'<li class="bar-row">.*?</li>', page, re.S)
+    row = re.search(r'<li class="bar-row">.*?</li>', page, re.DOTALL)
     assert row
     text = " ".join(re.sub(r"<[^>]+>", " ", row.group(0)).split())
     assert text == "Health & personal care $12.00".replace("&", "&amp;")
@@ -271,7 +271,9 @@ def test_forecast_ignores_other_users(db: SQLAlchemy, user_a: User, user_b: User
     assert result.total == Decimal("10.00")
 
 
-def test_forecast_for_next_month_crosses_a_year(db: SQLAlchemy, user_a: User, fake_today: Callable[[date], None]) -> None:
+def test_forecast_for_next_month_crosses_a_year(
+    db: SQLAlchemy, user_a: User, fake_today: Callable[[date], None]
+) -> None:
     fake_today(date(2026, 12, 5))
     _add(user_a, "12.00", date(2026, 9, 1))
     result = insights.next_month_forecast(user_a.id)
@@ -300,7 +302,7 @@ def test_page_shows_the_forecast(client: FlaskClient, user_a: User, today: date)
     assert "Forecast for March 2026" in page
     assert "Expected spending: <strong>$1,550.00</strong>" in page
     assert "Not enough data yet" not in page
-    forecast_panel = page[page.index('id="forecast-title"'):page.index('id="months-title"')]
+    forecast_panel = page[page.index('id="forecast-title"') : page.index('id="months-title"')]
     assert "Housing &amp; utilities" in forecast_panel and "$1,500.00" in forecast_panel
     assert "Dining out" in forecast_panel and "$50.00" in forecast_panel
     assert forecast_panel.index("Housing") < forecast_panel.index("Dining")
@@ -322,7 +324,7 @@ def test_headline_card_leads_with_this_month(client: FlaskClient, user_a: User, 
     login(client, "a@example.com")
     page = _page(client)
 
-    hero = page[page.index('class="stat-hero"'):page.index('class="dashboard-grid"')]
+    hero = page[page.index('class="stat-hero"') : page.index('class="dashboard-grid"')]
     assert "Spent in February 2026" in hero
     assert '<p class="stat-hero-amount">$42.10</p>' in hero
     assert "Last month" in hero and "$250.00" in hero

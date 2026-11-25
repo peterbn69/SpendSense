@@ -18,14 +18,14 @@ class NewExpense(NamedTuple):
 
 def add(user_id: int, amount: Decimal, category: str, spent_on: date, note: str = "") -> Expense:
     # Flush, so the expense gets an id and a constraint violation fails here.
-    expense = Expense(user_id=user_id, amount=amount, category=category, spent_on=spent_on, note=note)
+    expense = Expense(user_id=user_id, amount=amount, category=category, spent_on=spent_on, note=note)  # pyrefly: ignore[unexpected-keyword]
     db.session.add(expense)
     db.session.flush()
     return expense
 
 
 def add_many(user_id: int, rows: Iterable[NewExpense]) -> int:
-    expenses = [Expense(user_id=user_id, **row._asdict()) for row in rows]
+    expenses = [Expense(user_id=user_id, **row._asdict()) for row in rows]  # pyrefly: ignore[unexpected-keyword]
     db.session.add_all(expenses)
     db.session.flush()
     return len(expenses)

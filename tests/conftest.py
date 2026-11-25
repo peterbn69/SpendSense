@@ -8,9 +8,9 @@ import pytest
 from dotenv import dotenv_values
 from flask import Flask, g, request_started
 from flask.testing import FlaskClient
-from werkzeug.test import TestResponse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import make_url, text
+from werkzeug.test import TestResponse
 
 from app import clock, create_app
 from app.extensions import db as _db
@@ -127,6 +127,7 @@ def user_b(db: SQLAlchemy) -> User:
 @pytest.fixture
 def fake_today(monkeypatch: pytest.MonkeyPatch) -> Callable[[date], None]:
     """Call fake_today(date(...)) to fix clock.today() (and so clock.current_month()) for the test."""
+
     def set_today(day: date) -> None:
         monkeypatch.setattr(clock, "today", lambda: day)
 

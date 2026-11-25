@@ -7,7 +7,7 @@ from flask.logging import default_handler
 from flask_wtf.csrf import CSRFError
 from werkzeug.exceptions import HTTPException
 
-from app import models
+from app import models  # noqa: F401
 from app.blueprints.auth import bp as auth_bp
 from app.blueprints.dashboard import bp as dashboard_bp
 from app.blueprints.expenses import bp as expenses_bp
@@ -83,7 +83,7 @@ def _register_request_hooks(app: Flask) -> None:
         for values in (request.args, request.form):
             if any("\x00" in value for value in values.values() if isinstance(value, str)):
                 abort(400)
-            if any("\x00" in key for key in values.keys()):
+            if any("\x00" in key for key in values):
                 abort(400)
 
     @app.after_request

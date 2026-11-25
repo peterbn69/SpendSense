@@ -75,7 +75,9 @@ def settings_from_env() -> dict[str, str]:
 def validate_settings(config: Mapping[str, Any]) -> None:
     missing = [name for name, key in ENV_SETTINGS.items() if not config.get(key)]
     if missing:
-        raise RuntimeError(f"Missing required settings: {', '.join(missing)}. Set them as environment variables (see .env.example).")
+        raise RuntimeError(
+            f"Missing required settings: {', '.join(missing)}. Set them as environment variables (see .env.example)."
+        )
 
     timezone = config["APP_TIMEZONE"]
     try:
@@ -92,9 +94,12 @@ def validate_settings(config: Mapping[str, Any]) -> None:
         raise RuntimeError(f"LOG_LEVEL {level!r} is not one of: {', '.join(LOG_LEVELS)}.")
 
     # A short key makes signed session cookies guessable. The message never echoes the key.
-    if not config.get("DEBUG") and not config.get("TESTING"):
-        if len(str(config["SECRET_KEY"])) < PRODUCTION_SECRET_KEY_MIN_LENGTH:
-            raise RuntimeError(
-                f"SECRET_KEY must be at least {PRODUCTION_SECRET_KEY_MIN_LENGTH} characters in production "
-                "(see .env.example for how to generate one)."
-            )
+    if (
+        not config.get("DEBUG")
+        and not config.get("TESTING")
+        and len(str(config["SECRET_KEY"])) < PRODUCTION_SECRET_KEY_MIN_LENGTH
+    ):
+        raise RuntimeError(
+            f"SECRET_KEY must be at least {PRODUCTION_SECRET_KEY_MIN_LENGTH} characters in production "
+            "(see .env.example for how to generate one)."
+        )

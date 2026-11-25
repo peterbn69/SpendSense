@@ -35,6 +35,7 @@ Both are pure functions in `app/analytics/`, with no Flask or database, so they'
 | Front end | Semantic HTML, mobile-first CSS, vanilla JavaScript (no build step, no framework) |
 | Server | Gunicorn |
 | Tests | pytest against a real PostgreSQL database |
+| Code style | Ruff for formatting and linting (120-character lines, set in `pyproject.toml`) |
 
 ## Architecture
 
@@ -145,6 +146,13 @@ The suite runs against PostgreSQL, not SQLite, so the database's `CHECK` constra
 - **Time:** "today" is judged in the app's timezone, with time faked through `app/clock.py`.
 - **Analytics:** edge cases for the forecast (fewer than 3 months) and the z-score (fewer than 5 points, a standard deviation of 0).
 - **Security:** CSRF checks, the login rate limit, the production config (debug off, secure cookies) and security headers.
+
+Ruff checks the code style. `migrations/` is left out, so migrations that have already been applied are never rewritten.
+
+```powershell
+ruff format .
+ruff check .
+```
 
 ## Security
 

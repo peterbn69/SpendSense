@@ -6,7 +6,12 @@ from flask_login import current_user, login_required
 from werkzeug.wrappers import Response
 
 from app import clock
-from app.blueprints.expenses.forms import DATE_INVALID_MESSAGE, CategoryFilterForm, DeleteForm, ExpenseForm
+from app.blueprints.expenses.forms import (
+    DATE_INVALID_MESSAGE,
+    CategoryFilterForm,
+    DeleteForm,
+    ExpenseForm,
+)
 from app.formatting import month_totals_for_script
 from app.models import Expense
 from app.services import expenses, insights
@@ -100,7 +105,7 @@ def _render_form(form: ExpenseForm, title: str, action: str, expense: Expense | 
     month = shown_day.replace(day=1)
 
     # The no-JS text matches what the script shows on load: the month's spending plus a valid typed amount.
-    start_total = totals.get(month, Decimal("0"))
+    start_total = totals.get(month, Decimal(0))
     try:
         start_total += expenses.parse_amount(form.amount._value())
     except expenses.ExpenseRuleError:

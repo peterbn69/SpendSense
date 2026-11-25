@@ -41,13 +41,16 @@ BAD_VALUES = [
     "<script>alert(1)</script>",
     "' OR 1=1 --",
     "😀" * 60,
-    "‮​",
+    "\u202e\u200b",
     "2026-02-30",
     "9999-12-31",
 ]
 
 FORMS: dict[str, tuple[str, dict[str, str]]] = {
-    "register": ("/auth/register", {"email": "new@example.com", "password": "long enough pw", "confirm": "long enough pw"}),
+    "register": (
+        "/auth/register",
+        {"email": "new@example.com", "password": "long enough pw", "confirm": "long enough pw"},
+    ),
     "login": ("/auth/login", {"email": "a@example.com", "password": PASSWORD}),
     "expense": ("/expenses/new", {"amount": "12.50", "category": "dining", "spent_on": "2026-11-20", "note": "Lunch"}),
 }
@@ -110,8 +113,17 @@ def test_amount_accepts_ascii_digits_only(client: FlaskClient, user_a: User, tod
 def test_repeated_and_unexpected_fields_are_harmless(client: FlaskClient, user_a: User, today: date) -> None:
     login(client, "a@example.com")
     token = csrf_token(client, "/expenses/new")
-    data = MultiDict([("amount", "1.00"), ("amount", "-5"), ("category", "dining"), ("spent_on", "2026-11-20"),
-                      ("user_id", "999"), ("id", "1"), ("csrf_token", token)])
+    data = MultiDict(
+        [
+            ("amount", "1.00"),
+            ("amount", "-5"),
+            ("category", "dining"),
+            ("spent_on", "2026-11-20"),
+            ("user_id", "999"),
+            ("id", "1"),
+            ("csrf_token", token),
+        ]
+    )
     response = client.post("/expenses/new", data=data)
     assert response.status_code == 302
     (expense,) = expenses_repo.list_for_user(user_a.id)
@@ -191,7 +203,9 @@ def test_failed_login_is_logged_without_the_email(
     assert "wrong password" not in caplog.text
 
 
-def test_login_and_registration_are_logged_by_id(client: FlaskClient, db: SQLAlchemy, caplog: pytest.LogCaptureFixture) -> None:
+def test_login_and_registration_are_logged_by_id(
+    client: FlaskClient, db: SQLAlchemy, caplog: pytest.LogCaptureFixture
+) -> None:
     with caplog.at_level(logging.INFO):
         data = {"email": "c@example.com", "password": PASSWORD, "confirm": PASSWORD}
         _post(client, "/auth/register", data)
@@ -268,7 +282,9 @@ def _bad_login(client: FlaskClient) -> TestResponse:
     return client.post("/auth/login", data={"email": "nobody@example.com", "password": "nope", "csrf_token": token})
 
 
-def test_sixth_failed_login_in_a_minute_is_refused(limited_client: FlaskClient, caplog: pytest.LogCaptureFixture) -> None:
+def test_sixth_failed_login_in_a_minute_is_refused(
+    limited_client: FlaskClient, caplog: pytest.LogCaptureFixture
+) -> None:
     for _ in range(5):
         assert _bad_login(limited_client).status_code == 200
     with caplog.at_level(logging.WARNING):

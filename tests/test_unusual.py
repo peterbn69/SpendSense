@@ -110,7 +110,7 @@ def test_list_flags_unusual_expenses(client: FlaskClient, user_a: User, today: d
     assert len(flagged) == 1
     assert page.count('<span class="badge">Unusual</span>') == 1
     assert "Much higher than your usual Dining out expense (about $20.00)." in page
-    item = re.search(r'<li class="expense-item expense-item-unusual".*?</li>', page, re.S)
+    item = re.search(r'<li class="expense-item expense-item-unusual".*?</li>', page, re.DOTALL)
     assert item and f"/expenses/{outlier.id}/edit" in item.group(0)
 
 
@@ -131,7 +131,7 @@ def test_dashboard_lists_recent_unusual_expenses(client: FlaskClient, user_a: Us
     login(client, "a@example.com")
     page = client.get("/dashboard/").get_data(as_text=True)
 
-    panel = page[page.index('id="unusual-title"'):page.index('id="months-title"')]
+    panel = page[page.index('id="unusual-title"') : page.index('id="months-title"')]
     assert "From the last 90 days" in panel
     assert "Dining out" in panel and "$240.00" in panel
     assert "Nov 2, 2026" in panel

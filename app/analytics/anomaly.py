@@ -4,7 +4,7 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from typing import TypeVar
 
 MIN_POINTS = 5  # minimum number of existing expenses for a z-score
-THRESHOLD = Decimal("3")  # minimum number of (sample) standard deviations above the others' mean
+THRESHOLD = Decimal(3)  # minimum number of (sample) standard deviations above the others' mean
 CENT = Decimal("0.01")
 _PRECISION = 50  # room for sums of squares of large amounts without rounding
 
@@ -20,14 +20,12 @@ class Anomaly:
 def z_score(value: Decimal, others: Sequence[Decimal]) -> Decimal | None:
     with localcontext() as context:
         context.prec = _PRECISION
-        total = sum(others, Decimal("0"))
-        squares = sum((amount * amount for amount in others), Decimal("0"))
+        total = sum(others, Decimal(0))
+        squares = sum((amount * amount for amount in others), Decimal(0))
         return _z(value, len(others), total, squares)
 
 
-def flag_unusual(
-    expenses: Iterable[tuple[K, str, Decimal]], threshold: Decimal = THRESHOLD
-) -> dict[K, Anomaly]:
+def flag_unusual(expenses: Iterable[tuple[K, str, Decimal]], threshold: Decimal = THRESHOLD) -> dict[K, Anomaly]:
     by_category: dict[str, list[tuple[K, Decimal]]] = {}
     for key, category, amount in expenses:
         by_category.setdefault(category, []).append((key, amount))
@@ -37,8 +35,8 @@ def flag_unusual(
         context.prec = _PRECISION
         for items in by_category.values():
             count = len(items)
-            total = sum((amount for _, amount in items), Decimal("0"))
-            squares = sum((amount * amount for _, amount in items), Decimal("0"))
+            total = sum((amount for _, amount in items), Decimal(0))
+            squares = sum((amount * amount for _, amount in items), Decimal(0))
             for key, amount in items:
                 others_total = total - amount
                 z = _z(amount, count - 1, others_total, squares - amount * amount)

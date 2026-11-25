@@ -69,7 +69,7 @@ def dashboard(user_id: int) -> Dashboard:
     current = clock.current_month()
     first = add_months(current, -(MONTHS_SHOWN - 1))
     monthly = zero_filled(expenses.monthly_totals(user_id, since=first), month_range(first, current))
-    month_max = max((total for _, total in monthly), default=Decimal("0"))
+    month_max = max((total for _, total in monthly), default=Decimal(0))
     months = [
         MonthBar(
             label=f"{month:%b} {month.year}",
@@ -86,7 +86,7 @@ def dashboard(user_id: int) -> Dashboard:
     return Dashboard(
         has_expenses=expenses.count_for_user(user_id) > 0,
         current_month=current,
-        month_total=sum(by_category.values(), Decimal("0")),
+        month_total=sum(by_category.values(), Decimal(0)),
         months=months,
         categories=_ranked_bars(by_category),
         forecast=next_month_forecast(user_id),
@@ -148,7 +148,7 @@ def _ranked_bars(totals: dict[str, Decimal]) -> list[Bar]:
         ((key, total) for key, total in totals.items() if total > 0),
         key=lambda item: (-item[1], order.get(item[0], len(order))),
     )
-    largest = ranked[0][1] if ranked else Decimal("0")
+    largest = ranked[0][1] if ranked else Decimal(0)
     return [Bar(label=categories.label(key), amount=total, percent=_percent(total, largest)) for key, total in ranked]
 
 
@@ -156,5 +156,5 @@ def _percent(amount: Decimal, largest: Decimal) -> int:
     # Bar length as a whole percent of the largest; any spending gets at least 1% so it stays visible.
     if largest <= 0 or amount <= 0:
         return 0
-    percent = int((amount * 100 / largest).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    percent = int((amount * 100 / largest).quantize(Decimal(1), rounding=ROUND_HALF_UP))
     return max(1, min(100, percent))
